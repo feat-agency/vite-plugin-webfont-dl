@@ -1,5 +1,5 @@
 {
-	"name": "@feat.agency/vite-plugin-webfont-dl",
+	"name": "vite-plugin-webfont-dl",
 	"version": "1.0.0",
 	"description": "",
 	"main": "dist/vite-plugin-webfont-dl.js",
