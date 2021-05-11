@@ -1,6 +1,7 @@
 {
-	"name": "vite-plugin-webfont-dl",
+	"name": "@feat.agency/vite-plugin-webfont-dl",
 	"version": "1.0.0",
+	"description": "",
 	"main": "dist/vite-plugin-webfont-dl.js",
 	"scripts": {
 		"build": "rollup -c",
@@ -18,5 +19,13 @@
 		"@rollup/plugin-node-resolve": "^11.2",
 		"@rollup/plugin-typescript": "^8.2",
 		"rollup": "^2.45"
-	}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/feat-agency/vite-plugin-webfont-dl.git"
+	},
+	"bugs": {
+		"url": "https://github.com/feat-agency/vite-plugin-webfont-dl/issues"
+	},
+	"homepage": "https://github.com/feat-agency/vite-plugin-webfont-dl#readme"
 }
