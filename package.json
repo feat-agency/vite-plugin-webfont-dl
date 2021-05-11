@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "",
 	"main": "dist/vite-plugin-webfont-dl.js",
 	"files": [
