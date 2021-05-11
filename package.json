@@ -1,0 +1,22 @@
+{
+	"name": "vite-plugin-webfont-dl",
+	"version": "1.0.0",
+	"main": "dist/vite-plugin-webfont-dl.js",
+	"scripts": {
+		"build": "rollup -c",
+		"start": "rollup -c -w"
+	},
+	"author": "feat. agency <hello@feat.agency>",
+	"license": "MIT",
+	"dependencies": {
+		"axios": "^0.21"
+	},
+	"peerDependencies": {
+		"vite": "^2.0"
+	},
+	"devDependencies": {
+		"@rollup/plugin-node-resolve": "^11.2",
+		"@rollup/plugin-typescript": "^8.2",
+		"rollup": "^2.45"
+	}
+}
