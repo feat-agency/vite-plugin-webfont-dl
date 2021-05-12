@@ -1,21 +1,41 @@
-import type { ViteDevServer, Connect, ResolvedConfig } from 'vite';
+import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
+import { PluginContext } from 'rollup';
+import type { Font } from './types';
 import * as http from 'http';
 import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
 import { CssInjector } from './css-injector';
+import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
-import { OutputOptions } from 'rollup';
 
-export const ViteWebfontDownload = (webfontUrls: string[]) => {
+export function ViteWebfontDownload(webfontUrls: string[]): Plugin {
 	let base: string;
 	let assetsDir: string;
 
 	const cssLoader = new CssLoader();
 	const cssParser = new CssParser();
+	const cssTransformer = new CssTransformer();
 	const fontLoader = new FontLoader();
 
-	let cssContent: string = '';
-	let fontUrls: {[key: string]: string} = {};
+	let fonts: {[key: string]: Font} = {};
+
+	const cssFilename = 'webfonts.css';
+	let cssContent = '';
+	let cssPath: string;
+
+	const saveFile = (
+		pluginContext: PluginContext,
+		fileName: string,
+		source: string | Buffer
+	): string => {
+		const ref = pluginContext.emitFile({
+			name: fileName,
+			type: 'asset',
+			source: source,
+		});
+
+		return pluginContext.getFileName(ref);
+	};
 
 	return {
 		name: 'vite-plugin-webfont-dl',
@@ -24,13 +44,19 @@ export const ViteWebfontDownload = (webfontUrls: string[]) => {
 			base = resolvedConfig.base;
 			assetsDir = resolvedConfig.build.assetsDir;
 
-			cssContent = await cssLoader.loadAll(webfontUrls);
-
-			fontUrls = cssParser.parse(cssContent);
+			cssPath = assetsDir + '/' + cssFilename;
 		},
 
-		configureServer(server: ViteDevServer) {
-			const fontReplaceRegex = new RegExp('^' + base + assetsDir + '/');
+		async configureServer(server: ViteDevServer) {
+			cssContent = await cssLoader.loadAll(webfontUrls);
+			fonts = cssParser.parse(cssContent, base, assetsDir);
+			cssContent = cssTransformer.transform(cssContent, fonts);
+
+			const fontUrls: Map<string, string> = new Map();
+			for (const fontFileName in fonts) {
+				const font = fonts[fontFileName];
+				fontUrls.set(font.localPath, font.url);
+			}
 
 			server.middlewares.use(async (
 				req: Connect.IncomingMessage,
@@ -39,43 +65,41 @@ export const ViteWebfontDownload = (webfontUrls: string[]) => {
 			) => {
 				const url = req.originalUrl as string;
 
-				if (url.match(fontReplaceRegex)) {
-					const fontUrl = fontUrls[url.replace(fontReplaceRegex, '')];
-
-					res.end(await fontLoader.load(fontUrl));
+				if (url === base + cssPath) {
+					res.end(cssContent);
+				} else if (fontUrls.has(url)) {
+					res.end(await fontLoader.load(fontUrls.get(url) as string));
 				} else {
 					next();
 				}
 			});
 		},
 
-		async generateBundle(options: OutputOptions, bundle: any) {
-			for (const fontFile in fontUrls) {
-				const fontUrl = fontUrls[fontFile];
-				const fontBinary = await fontLoader.load(fontUrl);
+		async generateBundle() {
+			cssContent = await cssLoader.loadAll(webfontUrls);
+			fonts = cssParser.parse(cssContent, base, assetsDir);
 
-				const bundleItem = {
-					fileName: assetsDir + '/' + fontFile,
-					name: undefined,
-					isAsset: true,
-					source: fontBinary,
-					type: 'asset'
-				};
+			for (const fontFileName in fonts) {
+				const font = fonts[fontFileName];
+				const fontBinary = await fontLoader.load(font.url);
 
-				bundle[bundleItem.fileName] = bundleItem;
+				font.localPath = base + saveFile(
+					this,
+					fontFileName,
+					fontBinary
+				);
 			}
+
+			cssContent = cssTransformer.transform(cssContent, fonts);
+			cssPath = saveFile(
+				this,
+				cssFilename,
+				cssContent
+			);
 		},
 
 		async transformIndexHtml(html: string) {
-			let cssContentLocal = cssContent;
-
-			for (const fontFile in fontUrls) {
-				const fontUrl = fontUrls[fontFile];
-
-				cssContentLocal = cssContentLocal.replace(fontUrl, base + assetsDir + '/' + fontFile);
-			}
-
-			return (new CssInjector).inject(html, cssContentLocal);
+			return (new CssInjector).inject(html, base, cssPath);
 		},
 	};
 }

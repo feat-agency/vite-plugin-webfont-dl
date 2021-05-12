@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "",
 	"main": "dist/vite-plugin-webfont-dl.js",
 	"files": [
@@ -8,7 +8,9 @@
 	],
 	"scripts": {
 		"build": "rollup -c",
-		"start": "rollup -c -w"
+		"start": "rollup -c -w",
+		"lint": "eslint \"src/**/*.ts\" --no-fix",
+		"lint:fix": "eslint \"src/**/*.ts\" --fix"
 	},
 	"author": "feat. agency <hello@feat.agency>",
 	"license": "MIT",
@@ -16,12 +18,15 @@
 		"axios": "^0.21"
 	},
 	"peerDependencies": {
-		"vite": "^2.0"
+		"vite": "^2.3"
 	},
 	"devDependencies": {
-		"@rollup/plugin-node-resolve": "^11.2",
+		"@rollup/plugin-node-resolve": "^13.0",
 		"@rollup/plugin-typescript": "^8.2",
-		"rollup": "^2.45"
+		"typescript": "^4.2",
+		"rollup": "^2.45",
+		"eslint": "^7.26",
+		"@typescript-eslint/eslint-plugin": "^4.23"
 	},
 	"repository": {
 		"type": "git",
