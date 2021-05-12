@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "dist/vite-plugin-webfont-dl.js",
 	"files": [
-		"dist"
+		"dist/vite-plugin-webfont-dl.js"
 	],
 	"scripts": {
 		"build": "rollup -c",
