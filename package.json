@@ -1,7 +1,17 @@
 {
 	"name": "vite-plugin-webfont-dl",
 	"version": "1.0.6",
-	"description": "",
+	"description": "Vite plugin for downloading and injecting webfonts",
+	"keywords": [
+		"vite",
+		"vite-plugin",
+		"webfont",
+		"webfont-dl",
+		"webfont-download",
+		"google-fonts",
+		"vue",
+		"react"
+	],
 	"main": "dist/vite-plugin-webfont-dl.js",
 	"files": [
 		"dist/vite-plugin-webfont-dl.js"
@@ -35,5 +45,5 @@
 	"bugs": {
 		"url": "https://github.com/feat-agency/vite-plugin-webfont-dl/issues"
 	},
-	"homepage": "https://github.com/feat-agency/vite-plugin-webfont-dl#readme"
+	"homepage": "https://webfont-dl.feat.agency"
 }
