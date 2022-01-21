@@ -1,36 +1,19 @@
 {
 	"compilerOptions": {
-		"target": "esnext",
-		"module": "esnext",
+		"target": "es6",
+		"module": "es6",
 		"moduleResolution": "node",
 		"strict": true,
-		"jsx": "preserve",
 		"baseUrl": ".",
-		"experimentalDecorators": true,
 		"lib": [
-			"esnext",
-			"dom"
+			"es6"
 		],
 		"types": [
 			"node",
-		],
-		"plugins": [
-			{
-				"name": "@vuedx/typescript-plugin-vue"
-			}
-		],
-		"paths": {
-			"/@/*": [
-				"src/*"
-			]
-		}
+		]
 	},
 	"include": [
-		"src/**/*.ts",
-		"src/**/*.d.ts",
-		"src/**/*.tsx",
-		"src/**/*.vue",
-		"tests/**/*.ts",
-		"tests/**/*.tsx",
+		"src/*.ts",
+		"src/*.d.ts"
 	]
 }
