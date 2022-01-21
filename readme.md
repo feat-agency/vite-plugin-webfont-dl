@@ -4,11 +4,11 @@
 [![NPM downloads](https://img.shields.io/npm/dt/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 
 
-### **Make your Vite site load faster & boost SEO 🚀**
+### **Make your Vite site load faster & boost SEO performance 🚀**
 
 ⚠️ Using the standard method to add Google Fonts into a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** audit calls this a **<i>"render-blocking resource"</i>**, which means that the page can't load until the font has been fetched from the Google Fonts server.
 
-📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO**. 🔎
+📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO results**. 🔎
 
 ### **Eliminate Render-Blocking Resources caused by Google Fonts 🔝**
 

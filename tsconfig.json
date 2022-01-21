@@ -1,19 +1,26 @@
 {
 	"compilerOptions": {
-		"target": "es6",
-		"module": "es6",
+		"module": "esnext",
 		"moduleResolution": "node",
-		"strict": true,
-		"baseUrl": ".",
 		"lib": [
-			"es6"
+			"esnext"
 		],
-		"types": [
-			"node",
-		]
+		"target": "es6",
+		"baseUrl": ".",
+		"outDir": "./dist",
+		"strict": true,
+		"strictNullChecks": true,
+		"declaration": true,
+		"noUnusedLocals": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true
 	},
 	"include": [
 		"src/*.ts",
 		"src/*.d.ts"
+	],
+	"exclude": [
+		"dist",
+		"node_modules"
 	]
 }
