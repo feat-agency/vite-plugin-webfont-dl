@@ -44,7 +44,7 @@ export function ViteWebfontDownload(webfontUrls: string | string[]): Plugin {
 	return {
 		name: 'vite-plugin-webfont-dl',
 
-		async configResolved(resolvedConfig: ResolvedConfig) {
+		configResolved(resolvedConfig: ResolvedConfig) {
 			base = resolvedConfig.base;
 			assetsDir = resolvedConfig.build.assetsDir;
 
@@ -52,7 +52,7 @@ export function ViteWebfontDownload(webfontUrls: string | string[]): Plugin {
 		},
 
 		async configureServer(server: ViteDevServer) {
-			cssContent = await cssLoader.loadAll(webfontUrls);
+			cssContent = await cssLoader.loadAll(webfontUrls as string[]);
 			fonts = cssParser.parse(cssContent, base, assetsDir);
 			cssContent = cssTransformer.transform(cssContent, fonts);
 
@@ -62,25 +62,27 @@ export function ViteWebfontDownload(webfontUrls: string | string[]): Plugin {
 				fontUrls.set(font.localPath, font.url);
 			}
 
-			server.middlewares.use(async (
+			server.middlewares.use((
 				req: Connect.IncomingMessage,
 				res: http.ServerResponse,
 				next: Connect.NextFunction
 			) => {
-				const url = req.originalUrl as string;
+				void (async () => {
+					const url = req.originalUrl as string;
 
-				if (url === base + cssPath) {
-					res.end(cssContent);
-				} else if (fontUrls.has(url)) {
-					res.end(await fontLoader.load(fontUrls.get(url) as string));
-				} else {
-					next();
-				}
+					if (url === base + cssPath) {
+						res.end(cssContent);
+					} else if (fontUrls.has(url)) {
+						res.end(await fontLoader.load(fontUrls.get(url) as string));
+					} else {
+						next();
+					}
+				})();
 			});
 		},
 
 		async generateBundle() {
-			cssContent = await cssLoader.loadAll(webfontUrls);
+			cssContent = await cssLoader.loadAll(webfontUrls as string[]);
 			fonts = cssParser.parse(cssContent, base, assetsDir);
 
 			for (const fontFileName in fonts) {
@@ -102,7 +104,7 @@ export function ViteWebfontDownload(webfontUrls: string | string[]): Plugin {
 			);
 		},
 
-		async transformIndexHtml(html: string) {
+		transformIndexHtml(html: string) {
 			return (new CssInjector).inject(html, base, cssPath);
 		},
 	};

@@ -8,7 +8,7 @@ export class FontLoader {
 			url: url,
 		});
 
-		return response.data;
+		return response.data as Buffer;
 	}
 }
 
