@@ -8,7 +8,11 @@ import { CssInjector } from './css-injector';
 import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
 
-export function ViteWebfontDownload(webfontUrls: string[]): Plugin {
+export function ViteWebfontDownload(webfontUrls: string | string[]): Plugin {
+	if (!Array.isArray(webfontUrls)) {
+		webfontUrls = [webfontUrls];
+	}
+
 	let base: string;
 	let assetsDir: string;
 
