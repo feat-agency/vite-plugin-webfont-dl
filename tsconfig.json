@@ -10,7 +10,6 @@
 		"outDir": "./dist",
 		"strict": true,
 		"strictNullChecks": true,
-		"declaration": true,
 		"noUnusedLocals": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true

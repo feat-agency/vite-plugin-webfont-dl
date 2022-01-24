@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -12,31 +12,33 @@
 		"vue",
 		"react"
 	],
-	"main": "dist/vite-plugin-webfont-dl.js",
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
 	"files": [
-		"dist/vite-plugin-webfont-dl.js"
+		"dist"
 	],
 	"scripts": {
-		"build": "rollup -c",
-		"start": "rollup -c -w",
+		"start": "npm run build -- --watch",
+		"build": "tsup src/index.ts --dts --format cjs,esm",
 		"lint": "eslint \"src/**/*.ts\" --no-fix",
 		"lint:fix": "eslint \"src/**/*.ts\" --fix"
 	},
 	"author": "feat. agency <hello@feat.agency>",
 	"license": "MIT",
 	"dependencies": {
-		"axios": "^0.21"
+		"axios": "^0.25"
 	},
 	"peerDependencies": {
 		"vite": "^2"
 	},
 	"devDependencies": {
-		"@rollup/plugin-node-resolve": "^13.0",
-		"@rollup/plugin-typescript": "^8.2",
-		"typescript": "^4.2",
-		"rollup": "^2.45",
-		"eslint": "^7.26",
-		"@typescript-eslint/eslint-plugin": "^4.23"
+		"@types/node": "^17.0",
+		"@typescript-eslint/eslint-plugin": "^5.0",
+		"eslint": "^8.7",
+		"rollup": "^2.66",
+		"tsup": "^5.11",
+		"typescript": "^4.5"
 	},
 	"repository": {
 		"type": "git",
