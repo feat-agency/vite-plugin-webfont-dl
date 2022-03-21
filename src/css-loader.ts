@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export class CssLoader {
-	public async loadAll(urls: string[]): Promise<string> {
+	public async loadAll(urls: Set<string>): Promise<string> {
 		let cssContent = '';
 
 		for (const url of urls) {

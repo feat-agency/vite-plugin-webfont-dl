@@ -23,14 +23,38 @@
 npm i vite-plugin-webfont-dl -D
 ```
 
+<br>
 
-## 🦄 Usage
+## 😎 Usage: **zero-config**
+
+0. Select your font families at [Google Fonts](https://fonts.google.com) and copy the code into `<head>` from the **<i>"Use on the web"</i>** block:
+	```html
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400&family=Roboto:wght@100&display=swap" rel="stylesheet">
+	```
+1. Add **`ViteWebfontDownload`** to your Vite plugins without any configuration and the plugin will take care of everything:
+	```js
+	// vite.config.js
+
+	import { ViteWebfontDownload } from 'vite-plugin-webfont-dl';
+
+	export default {
+	  plugins: [
+	    ViteWebfontDownload(),
+	  ],
+	};
+	```
+
+<br>
+
+## 🦄 Usage: **simple config**
 
 1. Select your font families at [Google Fonts](https://fonts.google.com) and copy the **CSS URL**(s) from the **<i>"Use on the web"</i>** code block:
 	```html
 	<link href="[CSS URL]" rel="stylesheet">
 	```
-1. Add `ViteWebfontDownload` to your Vite plugins with the selected Google Fonts **CSS URL**(s):
+1. Add **`ViteWebfontDownload`** to your Vite plugins with the selected Google Fonts **CSS URL**(s):
 	```js
 	// vite.config.js
 
@@ -48,7 +72,8 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-🚀 **That's all!** From here the fonts are injected and available globally. Plugin works seamlessly even when working on local development server.
+## 🚀 That's all!
+From here the fonts are injected and available globally. Plugin works seamlessly even when working on local development server.
 
 
 ```css
@@ -60,6 +85,8 @@ h2 {
   font-family: 'Fira Code', monospace;
 }
 ```
+
+<br>
 
 ## 📈 Benchmark
 [Starter Vite project](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vanilla) with
