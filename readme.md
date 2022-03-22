@@ -10,6 +10,8 @@
 
 📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO results**. 🔎
 
+<br>
+
 ### **Eliminate Render-Blocking Resources caused by Google Fonts 🔝**
 
 **💡 Webfont-DL plugin let's you leverage the flexibility of Google Fonts without trade-offs when it comes to page perfomance.**
@@ -25,7 +27,9 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 😎 Usage: **zero-config**
+## 😎 Usage: **Zero config**
+
+*Extracts, downloads and injects fonts from the **original Google Fonts code snippet**.*
 
 0. Select your font families at [Google Fonts](https://fonts.google.com) and copy the code into `<head>` from the **<i>"Use on the web"</i>** block:
 	```html
@@ -33,7 +37,7 @@ npm i vite-plugin-webfont-dl -D
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400&family=Roboto:wght@100&display=swap" rel="stylesheet">
 	```
-1. Add **`ViteWebfontDownload`** to your Vite plugins without any configuration and the plugin will take care of everything:
+1. Add **`ViteWebfontDownload`** to your Vite plugins without any configuration and the plugin automagically will take care of everything:
 	```js
 	// vite.config.js
 
@@ -48,9 +52,11 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 🦄 Usage: **simple config**
+## 🦄 Usage: **Simple config**
 
-1. Select your font families at [Google Fonts](https://fonts.google.com) and copy the **CSS URL**(s) from the **<i>"Use on the web"</i>** code block:
+*Extracts, downloads and injects fonts from the **configured webfont CSS URL(s)**.*
+
+0. Select your font families at [Google Fonts](https://fonts.google.com) and copy the **CSS URL**(s) from the **<i>"Use on the web"</i>** code block:
 	```html
 	<link href="[CSS URL]" rel="stylesheet">
 	```

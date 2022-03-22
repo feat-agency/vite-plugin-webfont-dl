@@ -94,7 +94,8 @@ export function ViteWebfontDownload(_webfontUrls?: string | string[]): Plugin {
 	 *    4. collectFontsFromIndexHtml()
 	 *    5. loadCssAndFonts()
 	 *    6. downloadFonts()
-	 *    7. saveCss()
+	 *    7. replaceFontUrls()
+	 *    8. saveCss()
 	 *
 	 * B, Dev server:
 	 *    1. [hook] configResolved
@@ -103,6 +104,7 @@ export function ViteWebfontDownload(_webfontUrls?: string | string[]): Plugin {
 	 *    4. transformIndexHtml()
 	 *    5. collectFontsFromIndexHtml()
 	 *    6. loadCssAndFonts()
+	 *    7. replaceFontUrls()
 	 */
 
 	return {
