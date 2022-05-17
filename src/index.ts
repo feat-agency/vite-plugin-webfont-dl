@@ -15,6 +15,10 @@ export function ViteWebfontDownload(
 	_webfontUrls?: string | string[],
 	options?: Options
 ): Plugin {
+	if (!Array.isArray(_webfontUrls) && typeof _webfontUrls !== 'string' ) {
+		_webfontUrls = [];
+	}
+
 	if (typeof _webfontUrls === 'string') {
 		_webfontUrls = [_webfontUrls];
 	}
