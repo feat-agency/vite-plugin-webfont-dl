@@ -4,6 +4,6 @@ export interface Font {
 }
 
 export interface Options {
-	async: boolean;
+	async?: boolean;
 }
 
