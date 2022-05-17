@@ -1,20 +1,25 @@
 import { ServerResponse } from 'http';
 import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
 import { PluginContext } from 'rollup';
-import type { Font } from './types';
+import type { Font, Options } from './types';
 import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
 import { CssInjector } from './css-injector';
 import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
 import { IndexHtmlProcessor } from './index-html-processor';
+import { getOptionsWithDefaults } from './default-options';
 
 
-export function ViteWebfontDownload(_webfontUrls?: string | string[]): Plugin {
+export function ViteWebfontDownload(
+	_webfontUrls?: string | string[],
+	options?: Options
+): Plugin {
 	if (typeof _webfontUrls === 'string') {
 		_webfontUrls = [_webfontUrls];
 	}
 
+	const optionsWithDefaults: Options = getOptionsWithDefaults(options);
 	const webfontUrls = new Set<string>(_webfontUrls || []);
 
 
@@ -28,7 +33,7 @@ export function ViteWebfontDownload(_webfontUrls?: string | string[]): Plugin {
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
 	const fontLoader = new FontLoader();
-	const cssInjector = new CssInjector();
+	const cssInjector = new CssInjector(optionsWithDefaults);
 
 	let viteDevServer: ViteDevServer;
 	let pluginContext: PluginContext;
