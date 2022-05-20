@@ -143,6 +143,30 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 
 <br>
 
+### 🛠️ **Options**
+```ts
+ViteWebfontDownload(
+ [
+  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
+ ],
+ {
+  async: false
+ }
+)
+```
+
+**or**
+
+```js
+ViteWebfontDownload(
+ {
+  async: false
+ }
+)
+```
+
+**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues
+
 ## 📚 Resources
 * [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
 
