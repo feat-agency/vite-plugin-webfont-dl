@@ -165,7 +165,7 @@ ViteWebfontDownload(
 )
 ```
 
-**async option**: prevent the usage of inline event handlers that can cause Content Security Policy issues
+**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues
 
 ## 📚 Resources
 * [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
