@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -32,7 +32,7 @@
 		"axios": "^0.25"
 	},
 	"peerDependencies": {
-		"vite": "^2"
+		"vite": "^2 || ^3"
 	},
 	"devDependencies": {
 		"@types/node": "^17.0",
