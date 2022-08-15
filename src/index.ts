@@ -19,7 +19,7 @@ export function ViteWebfontDownload(
 		_webfontUrls = [];
 	}
 
-	if (typeof _webfontUrls === 'string') {
+	if (typeof _webfontUrls === 'string' && _webfontUrls !== '') {
 		_webfontUrls = [_webfontUrls];
 	}
 
@@ -95,7 +95,7 @@ export function ViteWebfontDownload(
 	};
 
 	const injectToHtml = (html: string, cssContent: string, base: string, cssPath: string): string => {
-		if (options.injectToHead === false) {
+		if (options.injectAsStyleTag === false) {
 			return cssInjector.injectAsStylesheet(html, base, cssPath);
 		}
 
@@ -188,7 +188,7 @@ export function ViteWebfontDownload(
 				await downloadFonts();
 				replaceFontUrls();
 
-				if (options.injectToHead === false) {
+				if (options.injectAsStyleTag === false) {
 					saveCss();
 				}
 			}

@@ -7,13 +7,13 @@ export interface Font {
  * This is the description of the interface
  *
  * @interface Options
- * @member {boolean} injectToHead is used to inject critical css between style tag.
+ * @member {boolean} injectAsStyleTag is used to inject critical css between style tag.
  * @member {boolean} async is used to import stylesheet asynchronously.
  */
 export interface Options {
 	/** Inject critical css between style tag */
-	injectToHead?: boolean;
-	/** Import stylesheet asynchronously. Has no effect when `injectToHead` is true */
+	injectAsStyleTag?: boolean;
+	/** Import stylesheet asynchronously. Has no effect when `injectAsStyleTag` is `true` */
 	async?: boolean;
 }
 

@@ -1,7 +1,7 @@
 import type { Options } from './types';
 
 const defaultOptions: Options = {
-	injectToHead: true,
+	injectAsStyleTag: true,
 	async: true,
 }
 

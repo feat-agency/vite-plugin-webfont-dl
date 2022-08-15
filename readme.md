@@ -144,14 +144,15 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 <br>
 
 ### 🛠️ **Options**
-```ts
+```js
 ViteWebfontDownload(
- [
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
- ],
- {
-  async: false
- }
+  [
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
+  ],
+  {
+	injectAsStyleTag: true,
+    async: true
+  }
 )
 ```
 
@@ -159,13 +160,16 @@ ViteWebfontDownload(
 
 ```js
 ViteWebfontDownload(
- {
-  async: false
- }
+  [],
+  {
+	injectAsStyleTag: true,
+    async: true
+  }
 )
 ```
 
-**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues
+**`injectAsStyleTag`**: inject webfonts as `<style>` tag or as an external `.css` file
+**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues (has no effect when `injectAsStyleTag` is `true`)
 
 ## 📚 Resources
 * [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
