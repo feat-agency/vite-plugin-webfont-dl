@@ -1,5 +1,5 @@
 import { ServerResponse } from 'http';
-import type { ViteDevServer, Connect, ResolvedConfig, Plugin, HtmlTagDescriptor } from 'vite';
+import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
 import { PluginContext } from 'rollup';
 import type { Font, Options } from './types';
 import { CssLoader } from './css-loader';
@@ -184,19 +184,14 @@ export function ViteWebfontDownload(
 				}
 			}
 
-			if (options?.injectToHead) {
-				const tag: HtmlTagDescriptor[] = [
-					{
-						tag: 'style',
-						children: cssContent,
-					}
-				]
+			html = indexHtmlProcessor.removeTags(html);
 
-				return tag;
+			if (options?.injectToHead) {
+				html = cssInjector.injectAsStyleTag(html, cssContent);
+			} else {
+				html = cssInjector.injectAsStylesheet(html, base, cssPath);
 			}
 
-			html = indexHtmlProcessor.removeTags(html);
-			html = cssInjector.inject(html, base, cssPath);
 
 			return html;
 		},

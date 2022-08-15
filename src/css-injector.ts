@@ -2,14 +2,21 @@ import { Options } from './types';
 
 export class CssInjector {
 
-	constructor(private options: Options) {}
+	constructor(private options: Options) { }
 
-	public inject(html: string, base: string, path: string): string {
+	public injectAsStylesheet(html: string, base: string, path: string): string {
 		if (this.options.async) {
 			return this.injectAsync(html, base, path);
 		} else {
 			return this.injectSync(html, base, path);
 		}
+	}
+
+	public injectAsStyleTag(html: string, cssContent: string): string {
+		return html.replace(
+			/([ \t]*)<\/head>/,
+			`$1<style>${cssContent}</style>\n</head>`
+		);
 	}
 
 
