@@ -130,7 +130,22 @@ h2 {
 
 On the contrary, **Webfont-DL plugin** does most of the job at build time, leaves the minimum to the browser.
 
-**Webfont-DL plugin** downloads the Google Fonts CSS file(s), extracts the font URLs, downloads the fonts, generates a webfont CSS file, add them to the bundle and injects the following code into your website's `<head>` using a non-render blocking method <i>(example)</i>:
+**Webfont-DL plugin** downloads the Google Fonts CSS file(s), extracts the font URLs, downloads the fonts, generates an inline style tag **or** a webfont CSS file, add them to the bundle and injects the following code into your website's `<head>` using a non-render blocking method <i>(example)</i>:
+
+```html
+<style>
+	@font-face {
+		font-family: 'Fira Code';
+		font-style: normal;
+		font-weight: 300;
+		font-display: swap;
+		src: url(/assets/uU9eCBsR6Z2vfE9aq3bL0fxyUs4tcw4W_GNsJV37Nv7g.9c348768.woff2) format('woff2');
+		unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+	}
+	...
+</style>
+```
+**or**
 
 ```html
 <link rel="preload" as="style" href="/assets/webfonts.b904bd45.css">
@@ -138,6 +153,11 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 ```
 
 📱 What happens on client-side with **Webfont-DL plugin**:
+
+1. Load fonts from the `inline style tag`.
+
+**or**
+
 1. First line instructs the browser to prefetch a CSS file for later use as stylesheet. [**`preload`**]
 1. Second line instructs the browser to load and use that CSS file as a "`print`" stylesheet <i>(non-render blocking)</i>. After loading it promote to "`all`" media type stylesheet (by removing the "`media`" attribute). [**`stylesheet`**]
 
