@@ -1,5 +1,5 @@
 import { ServerResponse } from 'http';
-import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
+import type { ViteDevServer, Connect, ResolvedConfig, Plugin, HtmlTagDescriptor } from 'vite';
 import { PluginContext } from 'rollup';
 import type { Font, Options } from './types';
 import { CssLoader } from './css-loader';
@@ -13,9 +13,11 @@ import { getOptionsWithDefaults } from './default-options';
 
 export function ViteWebfontDownload(
 	_webfontUrls?: string | string[],
-	options?: Options
+	options: Options = {
+		injectToHead: true,
+	}
 ): Plugin {
-	if (!Array.isArray(_webfontUrls) && typeof _webfontUrls !== 'string' ) {
+	if (!Array.isArray(_webfontUrls) && typeof _webfontUrls !== 'string') {
 		_webfontUrls = [];
 	}
 
@@ -153,7 +155,7 @@ export function ViteWebfontDownload(
 					if (url === base + cssPath) {
 						res.end(cssContent);
 
-					// /assets/xxx.woff2
+						// /assets/xxx.woff2
 					} else if (fontUrls.has(url)) {
 						res.end(await fontLoader.load(fontUrls.get(url) as string));
 
@@ -177,7 +179,20 @@ export function ViteWebfontDownload(
 			} else {
 				await downloadFonts();
 				replaceFontUrls();
-				saveCss();
+				if (!options?.injectToHead) {
+					saveCss();
+				}
+			}
+
+			if (options?.injectToHead) {
+				const tag: HtmlTagDescriptor[] = [
+					{
+						tag: 'style',
+						children: cssContent,
+					}
+				]
+
+				return tag;
 			}
 
 			html = indexHtmlProcessor.removeTags(html);
