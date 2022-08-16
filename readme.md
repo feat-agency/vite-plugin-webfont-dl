@@ -139,7 +139,7 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
   ...
 </style>
 ```
-**or**
+**or** *(using dev server or `injectAsStyleTag: false` option)*
 
 ```html
 <link rel="preload" as="style" href="/assets/webfonts.b904bd45.css">
@@ -148,7 +148,7 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 
 📱 What happens on client-side with **Webfont-DL plugin**:
 
-1. Load fonts from the `inline style tag`.
+1. Load fonts from the embedded CSS (`<style>` tag).
 
 **or**
 

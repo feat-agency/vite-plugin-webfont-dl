@@ -159,12 +159,10 @@ export function ViteWebfontDownload(
 
 					const url = req.originalUrl as string;
 
-					// /assets/webfonts.css
-					if (url === base + cssPath) {
+					if (url === base + cssPath) { // /assets/webfonts.css
 						res.end(cssContent);
 
-						// /assets/xxx.woff2
-					} else if (fontUrls.has(url)) {
+					} else if (fontUrls.has(url)) { // /assets/xxx.woff2
 						res.end(await fontLoader.load(fontUrls.get(url) as string));
 
 					} else {
