@@ -10,7 +10,7 @@
 
 ⚙️ The plugin **downloads the given fonts from Google Fonts and dynamically injects** them *(internal or external CSS)* into your Vite project.
 
-💡 **Webfont-DL plugin** let's you leverage the flexibility of Google Fonts without trade-offs when it comes to page perfomance.
+💡 **Webfont-DL plugin** lets you leverage the flexibility of Google Fonts without trade-offs when it comes to page perfomance.
 
 <br>
 
