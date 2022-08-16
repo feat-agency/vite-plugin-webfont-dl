@@ -6,7 +6,7 @@
 
 ⚠️ Using the standard method to add webfonts (like Google Fonts) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** audit calls this a ***"render-blocking resource"***, which means that the page can't load until the font has been fetched from the Google Fonts server.
 
-📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO results**. 🔎
+📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO results**.
 
 ⚙️ The plugin **downloads the given fonts from Google Fonts and dynamically injects** them *(internal or external CSS)* into your Vite project.
 
