@@ -95,7 +95,7 @@ export function ViteWebfontDownload(
 	};
 
 	const injectToHtml = (html: string, cssContent: string, base: string, cssPath: string): string => {
-		if (options.injectAsStyleTag === false) {
+		if (viteDevServer || options.injectAsStyleTag === false) {
 			return cssInjector.injectAsStylesheet(html, base, cssPath);
 		}
 
