@@ -166,9 +166,7 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 
 ```js
 ViteWebfontDownload(
-  [
-    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
-  ],
+  [],
   {
     injectAsStyleTag: true,
     async: true
@@ -176,11 +174,13 @@ ViteWebfontDownload(
 )
 ```
 
-**or**
+*or:*
 
 ```js
 ViteWebfontDownload(
-  [],
+  [
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
+  ],
   {
     injectAsStyleTag: true,
     async: true
