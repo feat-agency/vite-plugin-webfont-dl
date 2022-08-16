@@ -13,18 +13,18 @@ import { getOptionsWithDefaults } from './default-options';
 
 export function ViteWebfontDownload(
 	_webfontUrls?: string | string[],
-	options?: Options
+	_options?: Options
 ): Plugin {
-	if (!Array.isArray(_webfontUrls) && typeof _webfontUrls !== 'string' ) {
+	if (!Array.isArray(_webfontUrls) && typeof _webfontUrls !== 'string') {
 		_webfontUrls = [];
 	}
 
-	if (typeof _webfontUrls === 'string') {
+	if (typeof _webfontUrls === 'string' && _webfontUrls !== '') {
 		_webfontUrls = [_webfontUrls];
 	}
 
-	const optionsWithDefaults: Options = getOptionsWithDefaults(options);
 	const webfontUrls = new Set<string>(_webfontUrls || []);
+	const options: Options = getOptionsWithDefaults(_options);
 
 
 	let fontsLoaded = false;
@@ -37,7 +37,7 @@ export function ViteWebfontDownload(
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
 	const fontLoader = new FontLoader();
-	const cssInjector = new CssInjector(optionsWithDefaults);
+	const cssInjector = new CssInjector(options);
 
 	let viteDevServer: ViteDevServer;
 	let pluginContext: PluginContext;
@@ -94,6 +94,14 @@ export function ViteWebfontDownload(
 		return pluginContext.getFileName(ref);
 	};
 
+	const injectToHtml = (html: string, cssContent: string, base: string, cssPath: string): string => {
+		if (viteDevServer || options.injectAsStyleTag === false) {
+			return cssInjector.injectAsStylesheet(html, base, cssPath);
+		}
+
+		return cssInjector.injectAsStyleTag(html, cssContent);
+	}
+
 
 	/**
 	 * A, Build:
@@ -104,7 +112,8 @@ export function ViteWebfontDownload(
 	 *    5. loadCssAndFonts()
 	 *    6. downloadFonts()
 	 *    7. replaceFontUrls()
-	 *    8. saveCss()
+	 *    8. [optional] saveCss()
+	 *    9. injectToHtml()
 	 *
 	 * B, Dev server:
 	 *    1. [hook] configResolved
@@ -114,6 +123,7 @@ export function ViteWebfontDownload(
 	 *    5. collectFontsFromIndexHtml()
 	 *    6. loadCssAndFonts()
 	 *    7. replaceFontUrls()
+	 *    8. injectToHtml()
 	 */
 
 	return {
@@ -149,12 +159,10 @@ export function ViteWebfontDownload(
 
 					const url = req.originalUrl as string;
 
-					// /assets/webfonts.css
-					if (url === base + cssPath) {
+					if (url === base + cssPath) { // /assets/webfonts.css
 						res.end(cssContent);
 
-					// /assets/xxx.woff2
-					} else if (fontUrls.has(url)) {
+					} else if (fontUrls.has(url)) { // /assets/xxx.woff2
 						res.end(await fontLoader.load(fontUrls.get(url) as string));
 
 					} else {
@@ -177,11 +185,14 @@ export function ViteWebfontDownload(
 			} else {
 				await downloadFonts();
 				replaceFontUrls();
-				saveCss();
+
+				if (options.injectAsStyleTag === false) {
+					saveCss();
+				}
 			}
 
 			html = indexHtmlProcessor.removeTags(html);
-			html = cssInjector.inject(html, base, cssPath);
+			html = injectToHtml(html, cssContent, base, cssPath);
 
 			return html;
 		},
