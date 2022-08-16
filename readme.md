@@ -183,7 +183,7 @@ ViteWebfontDownload(
 ## 📈 Benchmark
 [Starter Vite project](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vanilla) with
 
-| [▶️ Standard **Google Fonts**](https://pagespeed.web.dev/report?url=https%3A%2F%2Fwebfont.feat.agency%2F) | 🆚 | [▶️ **Webfont DL** Vite plugin](https://pagespeed.web.dev/report?url=https%3A%2F%2Fwebfont-dl.feat.agency%2F) |
+| [▶️ Standard **Google Fonts**](https://web.dev/measure/?url=https%3A%2F%2Fwebfont.feat.agency%2F) | 🆚 | [▶️ **Webfont DL** Vite plugin](https://web.dev/measure/?url=https%3A%2F%2Fwebfont-dl.feat.agency%2F) |
 |:---:|:---:|:---:|
 | [🔗 webfont.feat.agency](https://webfont.feat.agency) | | [🔗 webfont-dl.feat.agency](https://webfont-dl.feat.agency) |
 
