@@ -158,6 +158,12 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 <br>
 
 ### 🛠️ **Options**
+**`injectAsStyleTag`**: inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
+
+**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues (has no effect when `injectAsStyleTag` is `true`)
+
+*usage:*
+
 ```js
 ViteWebfontDownload(
   [
@@ -182,12 +188,12 @@ ViteWebfontDownload(
 )
 ```
 
-**`injectAsStyleTag`**: inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
-**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues (has no effect when `injectAsStyleTag` is `true`)
+<br>
 
 ## 📚 Resources
 * [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
 
+<br>
 
 ## 📄 License
 
