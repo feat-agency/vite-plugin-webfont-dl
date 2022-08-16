@@ -15,7 +15,7 @@ export class CssInjector {
 	public injectAsStyleTag(html: string, cssContent: string): string {
 		return html.replace(
 			/([ \t]*)<\/head>/,
-			`$1<style>${cssContent}</style>\n</head>`
+			`$1$1<style>\n${cssContent.replace(/^/gm, '$1$1$1')}\n$1$1</style>\n$1</head>`
 		);
 	}
 
@@ -23,14 +23,14 @@ export class CssInjector {
 	private injectAsync(html: string, base: string, path: string): string {
 		return html.replace(
 			/([ \t]*)<\/head>/,
-			`$1<link rel="preload" as="style" href="${base}${path}">\n$1<link rel="stylesheet" media="print" onload="this.onload=null;this.removeAttribute('media');" href="${base}${path}">\n</head>`
+			`$1$1<link rel="preload" as="style" href="${base}${path}">\n$1$1<link rel="stylesheet" media="print" onload="this.onload=null;this.removeAttribute('media');" href="${base}${path}">\n$1</head>`
 		);
 	}
 
 	private injectSync(html: string, base: string, path: string): string {
 		return html.replace(
 			/([ \t]*)<\/head>/,
-			`$1<link rel="preload" as="style" href="${base}${path}">\n$1<link rel="stylesheet" href="${base}${path}">\n</head>`
+			`$1$1<link rel="preload" as="style" href="${base}${path}">\n$1$1<link rel="stylesheet" href="${base}${path}">\n$1</head>`
 		);
 	}
 }

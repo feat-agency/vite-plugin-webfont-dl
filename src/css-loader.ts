@@ -5,10 +5,10 @@ export class CssLoader {
 		let cssContent = '';
 
 		for (const url of urls) {
-			cssContent += await this.load(url) + '\n';
+			cssContent += (await this.load(url)).trim() + '\n';
 		}
 
-		return cssContent;
+		return cssContent.trim();
 	}
 
 	private async load(url: string) {
