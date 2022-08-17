@@ -31,15 +31,15 @@ npm i vite-plugin-webfont-dl -D
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400&family=Roboto:wght@100&display=swap" rel="stylesheet">
 	```
-1. Add **`ViteWebfontDownload`** to your Vite plugins without any configuration and the plugin automagically will take care of everything:
+1. Add **`webfontDownload`** to your Vite plugins without any configuration and the plugin automagically will take care of everything:
 	```js
 	// vite.config.js
 
-	import { ViteWebfontDownload } from 'vite-plugin-webfont-dl';
+	import webfontDownload from 'vite-plugin-webfont-dl';
 
 	export default {
 	  plugins: [
-	    ViteWebfontDownload(),
+	    webfontDownload(),
 	  ],
 	};
 	```
@@ -54,15 +54,15 @@ npm i vite-plugin-webfont-dl -D
 	```html
 	<link href="[CSS URL]" rel="stylesheet">
 	```
-1. Add **`ViteWebfontDownload`** to your Vite plugins with the selected Google Fonts **CSS URL**(s):
+1. Add **`webfontDownload`** to your Vite plugins with the selected Google Fonts **CSS URL**(s):
 	```js
 	// vite.config.js
 
-	import { ViteWebfontDownload } from 'vite-plugin-webfont-dl';
+	import webfontDownload from 'vite-plugin-webfont-dl';
 
 	export default {
 	  plugins: [
-	    ViteWebfontDownload([
+	    webfontDownload([
 	      'https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap',
 	      'https://fonts.googleapis.com/css2?family=Fira+Code&display=swap'
 	    ]),

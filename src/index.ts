@@ -11,7 +11,7 @@ import { IndexHtmlProcessor } from './index-html-processor';
 import { getOptionsWithDefaults } from './default-options';
 
 
-export function ViteWebfontDownload(
+function viteWebfontDownload(
 	_webfontUrls?: string | string[],
 	_options?: Options
 ): Plugin {
@@ -198,3 +198,12 @@ export function ViteWebfontDownload(
 		},
 	};
 }
+
+export {
+	viteWebfontDownload as default,
+	viteWebfontDownload as webfontDl,
+	viteWebfontDownload as webfontDownload,
+	viteWebfontDownload as viteWebfontDl,
+	viteWebfontDownload as ViteWebfontDownload,
+	viteWebfontDownload,
+};
