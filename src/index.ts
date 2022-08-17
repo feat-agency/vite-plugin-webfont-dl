@@ -148,19 +148,26 @@ function viteWebfontDownload(
 			) => {
 				void (async () => {
 					// create fonts map
-					if (fontsLoaded && !fontUrlsMapped) {
-						for (const fontFileName in fonts) {
-							const font = fonts[fontFileName];
-							fontUrls.set(font.localPath, font.url);
-						}
-
-						fontUrlsMapped = true;
-					}
-
 					const url = req.originalUrl as string;
 
 					if (url === base + cssPath) { // /assets/webfonts.css
-						res.end(cssContent);
+						try {
+							await loadCssAndFonts();
+							if (fontsLoaded && !fontUrlsMapped) {
+								for (const fontFileName in fonts) {
+									const font = fonts[fontFileName];
+									fontUrls.set(font.localPath, font.url);
+								}
+
+								fontUrlsMapped = true;
+							}
+							res.end(cssContent);
+						} catch (error) {
+							console.error('[webfont-dl]', (error as Error).message);
+							res.statusCode = 502;
+							res.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
+							res.end();
+						}
 
 					} else if (fontUrls.has(url)) { // /assets/xxx.woff2
 						res.end(await fontLoader.load(fontUrls.get(url) as string));
@@ -178,11 +185,11 @@ function viteWebfontDownload(
 
 		async transformIndexHtml(html: string) {
 			collectFontsFromIndexHtml(html);
-			await loadCssAndFonts();
 
 			if (viteDevServer) {
 				replaceFontUrls();
 			} else {
+				await loadCssAndFonts();
 				await downloadFonts();
 				replaceFontUrls();
 
