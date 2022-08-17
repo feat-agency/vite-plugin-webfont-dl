@@ -24,10 +24,10 @@ function viteWebfontDownload(
 	}
 
 	const webfontUrls = new Set<string>(_webfontUrls || []);
+	const webfontUrlsIndex = new Set<string>([]);
 	const options: Options = getOptionsWithDefaults(_options);
 
 
-	let fontsLoaded = false;
 	let fonts: { [key: string]: Font } = {};
 	const cssFilename = 'webfonts.css';
 
@@ -49,16 +49,19 @@ function viteWebfontDownload(
 
 
 	const collectFontsFromIndexHtml = (indexHtml: string): void => {
+		webfontUrlsIndex.clear();
+
 		for (const webfontUrl of indexHtmlProcessor.parse(indexHtml)) {
-			webfontUrls.add(webfontUrl);
+			webfontUrlsIndex.add(webfontUrl);
 		}
 	};
 
 	const loadCssAndFonts = async (): Promise<void> => {
-		cssContent = await cssLoader.loadAll(webfontUrls);
-		fonts = cssParser.parse(cssContent, base, assetsDir);
+		cssContent = await cssLoader.loadAll(
+			new Set([...webfontUrls, ...webfontUrlsIndex])
+		);
 
-		fontsLoaded = true;
+		fonts = cssParser.parse(cssContent, base, assetsDir);
 	};
 
 	const replaceFontUrls = () => {
@@ -119,7 +122,7 @@ function viteWebfontDownload(
 	 *    1. [hook] configResolved
 	 *    2. [hook] configureServer: middleware init
 	 *    3. configureServer: middleware index.html
-	 *    4. transformIndexHtml()
+	 *    4. [hook] transformIndexHtml
 	 *    5. collectFontsFromIndexHtml()
 	 *    6. loadCssAndFonts()
 	 *    7. replaceFontUrls()
@@ -138,8 +141,20 @@ function viteWebfontDownload(
 		configureServer(_viteDevServer: ViteDevServer) {
 			viteDevServer = _viteDevServer;
 
-			let fontUrlsMapped = false;
-			const fontUrls: Map<string, string> = new Map();
+			const fontUrlsDevMap: Map<string, string> = new Map();
+
+			const loadAndPrepareDevFonts = async () => {
+				await loadCssAndFonts();
+
+				// create fonts map
+				fontUrlsDevMap.clear();
+
+				for (const fontFileName in fonts) {
+					const font = fonts[fontFileName];
+
+					fontUrlsDevMap.set(font.localPath, font.url);
+				}
+			};
 
 			viteDevServer.middlewares.use((
 				req: Connect.IncomingMessage,
@@ -147,23 +162,22 @@ function viteWebfontDownload(
 				next: Connect.NextFunction
 			) => {
 				void (async () => {
-					// create fonts map
-					if (fontsLoaded && !fontUrlsMapped) {
-						for (const fontFileName in fonts) {
-							const font = fonts[fontFileName];
-							fontUrls.set(font.localPath, font.url);
-						}
-
-						fontUrlsMapped = true;
-					}
-
 					const url = req.originalUrl as string;
 
 					if (url === base + cssPath) { // /assets/webfonts.css
-						res.end(cssContent);
+						try {
+							await loadAndPrepareDevFonts();
+							res.end(cssContent);
+						} catch (error) {
+							console.error('[webfont-dl]', (error as Error).message);
 
-					} else if (fontUrls.has(url)) { // /assets/xxx.woff2
-						res.end(await fontLoader.load(fontUrls.get(url) as string));
+							res.statusCode = 502;
+							res.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
+							res.end();
+						}
+
+					} else if (fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
+						res.end(await fontLoader.load(fontUrlsDevMap.get(url) as string));
 
 					} else {
 						next();
@@ -178,11 +192,11 @@ function viteWebfontDownload(
 
 		async transformIndexHtml(html: string) {
 			collectFontsFromIndexHtml(html);
-			await loadCssAndFonts();
 
 			if (viteDevServer) {
 				replaceFontUrls();
 			} else {
+				await loadCssAndFonts();
 				await downloadFonts();
 				replaceFontUrls();
 
