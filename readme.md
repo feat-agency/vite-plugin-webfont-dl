@@ -21,7 +21,7 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 😎 Usage: **Zero config**
+## 😎 Usage <sub><sup>[method 🅰️]</sub></sup>: **Zero config**
 
 *Extracts, downloads and injects fonts from the **original Google Fonts code snippet**.*
 
@@ -46,7 +46,7 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 🦄 Usage: **Simple config**
+## 🦄 Usage <sub><sup>[method 🅱️]</sub></sup>: **Simple config**
 
 *Extracts, downloads and injects fonts from the **configured webfont CSS URL(s)**.*
 
