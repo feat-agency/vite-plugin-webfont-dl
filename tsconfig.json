@@ -3,7 +3,7 @@
 		"module": "esnext",
 		"moduleResolution": "node",
 		"lib": [
-			"esnext"
+			"es2021"
 		],
 		"target": "es6",
 		"baseUrl": ".",
@@ -12,14 +12,14 @@
 		"strictNullChecks": true,
 		"noUnusedLocals": true,
 		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true
 	},
 	"include": [
 		"src/*.ts",
 		"src/*.d.ts"
 	],
 	"exclude": [
-		"dist",
-		"node_modules"
+		"dist"
 	]
 }

@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
-import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
 import { PluginContext } from 'rollup';
+import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
 import type { Font, Options } from './types';
 import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
@@ -145,6 +145,7 @@ function viteWebfontDownload(
 
 			const loadAndPrepareDevFonts = async () => {
 				await loadCssAndFonts();
+				replaceFontUrls();
 
 				// create fonts map
 				fontUrlsDevMap.clear();
@@ -162,9 +163,9 @@ function viteWebfontDownload(
 				next: Connect.NextFunction
 			) => {
 				void (async () => {
-					const url = req.originalUrl as string;
+					const url = req.originalUrl?.replace(/[?#].*$/, '');
 
-					if (url === base + cssPath) { // /assets/webfonts.css
+					if (url && url === base + cssPath) { // /assets/webfonts.css
 						try {
 							await loadAndPrepareDevFonts();
 							res.end(cssContent);
@@ -176,8 +177,13 @@ function viteWebfontDownload(
 							res.end();
 						}
 
-					} else if (fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
-						res.end(await fontLoader.load(fontUrlsDevMap.get(url) as string));
+					} else if (url && fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
+						res.end(
+							await fontLoader.load(
+								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+								fontUrlsDevMap.get(url)!
+							)
+						);
 
 					} else {
 						next();
@@ -187,15 +193,14 @@ function viteWebfontDownload(
 		},
 
 		generateBundle() {
+			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			pluginContext = this;
 		},
 
 		async transformIndexHtml(html: string) {
 			collectFontsFromIndexHtml(html);
 
-			if (viteDevServer) {
-				replaceFontUrls();
-			} else {
+			if (!viteDevServer) {
 				await loadCssAndFonts();
 				await downloadFonts();
 				replaceFontUrls();

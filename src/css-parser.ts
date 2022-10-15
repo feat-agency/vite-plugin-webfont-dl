@@ -1,10 +1,10 @@
 import type { Font } from "./types";
 
 export class CssParser {
-	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)(?:[?#=]+\w*)?/gi;
+	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
 	private googleFontsKitSrcRegex = /https:\/\/fonts.gstatic.com\/l\/font\?kit=[a-z0-9&=]+/gi;
 
-	private fontFileRegex = /[^/]+$/;
+	private fontFilenameRegex = /[^/]+\.(?:woff2?|eot|ttf|otf|svg)/i;
 	private googleFontsFileRegex = /\?kit=([a-z0-9]+)/i;
 
 	public parse(cssContent: string, base: string, assetsDir: string): {[key: string]: Font} {
@@ -16,9 +16,11 @@ export class CssParser {
 		if (fontSrcMatches) {
 			for (const fontSrcMatch of fontSrcMatches) {
 				const url = fontSrcMatch.toString();
-				const filename = url.match(this.fontFileRegex)?.toString();
+				const filenameMatch = url.match(this.fontFilenameRegex);
 
-				if (filename) {
+				if (filenameMatch) {
+					const filename = filenameMatch[0];
+
 					fonts[filename] = {
 						url,
 						localPath: base + assetsDir + '/' + filename,

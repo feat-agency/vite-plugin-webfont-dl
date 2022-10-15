@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.1.1",
+	"version": "3.1.2",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -23,7 +23,7 @@
 	"scripts": {
 		"start": "npm run build -- --watch",
 		"build": "tsup src/index.ts --dts --format cjs,esm",
-		"lint": "tsc src/index.ts --noEmit --downlevelIteration && eslint \"src/**/*.ts\" --no-fix",
+		"lint": "tsc --noEmit --downlevelIteration && eslint \"src/**/*.ts\" --no-fix",
 		"lint:fix": "eslint \"src/**/*.ts\" --fix"
 	},
 	"author": "feat. agency <hello@feat.agency>",

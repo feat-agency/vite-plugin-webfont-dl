@@ -8,7 +8,7 @@ export class CssTransformer {
 		for (const fontFile in fonts) {
 			const font = fonts[fontFile];
 
-			cssContent = cssContent.replace(font.url, font.localPath);
+			cssContent = cssContent.replaceAll(font.url, font.localPath);
 		}
 
 		return cssContent;

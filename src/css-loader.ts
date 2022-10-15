@@ -1,11 +1,17 @@
+import { URL } from 'url';
 import axios from 'axios';
 
 export class CssLoader {
+	private isRelativeUrlRegex = /..?\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
+
 	public async loadAll(urls: Set<string>): Promise<string> {
 		let cssContent = '';
 
 		for (const url of urls) {
-			cssContent += (await this.load(url)).trim() + '\n';
+			let singleCssContent = (await this.load(url)).trim();
+			singleCssContent = this.normalizeUrls(singleCssContent, url);
+
+			cssContent += singleCssContent + '\n';
 		}
 
 		return cssContent.trim();
@@ -23,6 +29,14 @@ export class CssLoader {
 		});
 
 		return response.data as string;
+	}
+
+	private normalizeUrls(cssContent: string, cssUrl: string) {
+		return cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
+			const urlObject = new URL(match, cssUrl);
+
+			return urlObject.href;
+		});
 	}
 }
 
