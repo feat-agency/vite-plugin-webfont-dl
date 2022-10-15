@@ -11,9 +11,23 @@ export interface Font {
  * @member {boolean} async is used to import stylesheet asynchronously.
  */
 export interface Options {
-	/** Inject critical css between style tag */
+	/**
+	 * Inject critical css between style tag.
+	 * default: `true`
+	 * */
 	injectAsStyleTag?: boolean;
-	/** Import stylesheet asynchronously. Has no effect when `injectAsStyleTag` is `true` */
+
+	/**
+	 * Minify CSS code during build.
+	 * default: `true`
+	 * */
+	minifyCss?: boolean;
+
+	/**
+	 * Load stylesheet asynchronously (using `media="print"`).
+	 * Works only with `injectAsStyleTag:false`).
+	 * default: `true`
+	 * */
 	async?: boolean;
 }
 

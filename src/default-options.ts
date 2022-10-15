@@ -2,6 +2,7 @@ import type { Options } from './types';
 
 const defaultOptions: Options = {
 	injectAsStyleTag: true,
+	minifyCss: true,
 	async: true,
 }
 

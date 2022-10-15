@@ -148,9 +148,15 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 <br>
 
 ### 🛠️ **Options**
-**`injectAsStyleTag`**: inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
+- **`injectAsStyleTag`** <small>(`boolean`, default: `true`)</small>:<br>
+  Inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
 
-**`async`**: prevent the usage of inline event handlers that can cause Content Security Policy issues (has no effect when `injectAsStyleTag` is `true`)
+- **`minifyCss`** <small>(`boolean`, default: `true`)</small>:<br>
+  Minify CSS code during build.
+
+- **`async`** <small>(`boolean`, default: `true`)</small>:<br>
+  Prevent the usage of inline event handlers (`webfonts.css`) that can cause Content Security Policy issues.<br>
+  Works only with **`injectAsStyleTag:false`**.
 
 *usage:*
 
@@ -159,6 +165,7 @@ ViteWebfontDownload(
   [],
   {
     injectAsStyleTag: true,
+    minifyCss: true,
     async: true
   }
 )
@@ -173,6 +180,7 @@ ViteWebfontDownload(
   ],
   {
     injectAsStyleTag: true,
+    minifyCss: true,
     async: true
   }
 )

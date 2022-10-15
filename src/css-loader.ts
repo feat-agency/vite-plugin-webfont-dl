@@ -1,8 +1,12 @@
 import { URL } from 'url';
 import axios from 'axios';
+import CleanCss from 'clean-css';
+import { Options } from './types';
 
 export class CssLoader {
 	private isRelativeUrlRegex = /..?\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
+
+	constructor(private options: Options) { }
 
 	public async loadAll(urls: Set<string>): Promise<string> {
 		let cssContent = '';
@@ -12,6 +16,10 @@ export class CssLoader {
 			singleCssContent = this.normalizeUrls(singleCssContent, url);
 
 			cssContent += singleCssContent + '\n';
+		}
+
+		if (this.options.minifyCss) {
+			return new CleanCss().minify(cssContent).styles;
 		}
 
 		return cssContent.trim();

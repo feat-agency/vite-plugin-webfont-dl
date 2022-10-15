@@ -33,7 +33,7 @@ function viteWebfontDownload(
 
 
 	const indexHtmlProcessor = new IndexHtmlProcessor();
-	const cssLoader = new CssLoader();
+	const cssLoader = new CssLoader(options);
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
 	const fontLoader = new FontLoader();

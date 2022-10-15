@@ -13,6 +13,13 @@ export class CssInjector {
 	}
 
 	public injectAsStyleTag(html: string, cssContent: string): string {
+		if (this.options.minifyCss) {
+			return html.replace(
+				/([ \t]*)<\/head>/,
+				`$1$1<style>${cssContent}</style>\n$1</head>`
+			);
+		}
+
 		return html.replace(
 			/([ \t]*)<\/head>/,
 			`$1$1<style>\n${cssContent.replace(/^/gm, '$1$1$1')}\n$1$1</style>\n$1</head>`
