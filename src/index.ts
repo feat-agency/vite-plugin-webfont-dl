@@ -126,7 +126,7 @@ function viteWebfontDownload(
 			return cssInjector.injectAsStylesheet(html, base, cssPath);
 		}
 
-		return cssInjector.injectAsStyleTag(html, cssContent);
+		return cssInjector.injectAsStyleTag(html, cssContent as string);
 	}
 
 

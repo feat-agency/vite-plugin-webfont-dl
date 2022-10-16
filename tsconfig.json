@@ -16,8 +16,9 @@
 		"skipLibCheck": true
 	},
 	"include": [
-		"src/*.ts",
-		"src/*.d.ts"
+		"src",
+		"test",
+		"vite.config.ts"
 	],
 	"exclude": [
 		"dist"
