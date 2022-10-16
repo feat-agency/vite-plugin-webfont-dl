@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
-import { PluginContext } from 'rollup';
-import type { ViteDevServer, Connect, ResolvedConfig, Plugin } from 'vite';
+import { OutputAsset, OutputBundle, PluginContext } from 'rollup';
+import type { ViteDevServer, Connect, ResolvedConfig, Plugin, IndexHtmlTransformContext } from 'vite';
 import type { Font, Options } from './types';
 import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
@@ -31,6 +31,7 @@ function viteWebfontDownload(
 	let fonts: { [key: string]: Font } = {};
 	const cssFilename = 'webfonts.css';
 
+	const fontUrlsDevMap: Map<string, string> = new Map();
 
 	const indexHtmlProcessor = new IndexHtmlProcessor();
 	const cssLoader = new CssLoader(options);
@@ -44,6 +45,10 @@ function viteWebfontDownload(
 
 	let base: string;
 	let assetsDir: string;
+
+	let indexHtmlContent: string;
+	let indexHtmlPath: string;
+
 	let cssContent = '';
 	let cssPath: string;
 
@@ -58,7 +63,8 @@ function viteWebfontDownload(
 
 	const loadCssAndFonts = async (): Promise<void> => {
 		cssContent = await cssLoader.loadAll(
-			new Set([...webfontUrls, ...webfontUrlsIndex])
+			new Set([...webfontUrls, ...webfontUrlsIndex]),
+			!!viteDevServer
 		);
 
 		fonts = cssParser.parse(cssContent, base, assetsDir);
@@ -80,6 +86,24 @@ function viteWebfontDownload(
 		}
 	};
 
+	const downloadFont = async (url: string): Promise<Buffer> => {
+		return fontLoader.load(url);
+	};
+
+	const loadAndPrepareDevFonts = async () => {
+		await loadCssAndFonts();
+		replaceFontUrls();
+
+		// create fonts map
+		fontUrlsDevMap.clear();
+
+		for (const fontFileName in fonts) {
+			const font = fonts[fontFileName];
+
+			fontUrlsDevMap.set(font.localPath, font.url);
+		}
+	};
+
 	const saveCss = (): void => {
 		cssPath = saveFile(
 			cssFilename,
@@ -97,7 +121,7 @@ function viteWebfontDownload(
 		return pluginContext.getFileName(ref);
 	};
 
-	const injectToHtml = (html: string, cssContent: string, base: string, cssPath: string): string => {
+	const injectToHtml = (html: string, cssContent?: string): string => {
 		if (viteDevServer || options.injectAsStyleTag === false) {
 			return cssInjector.injectAsStylesheet(html, base, cssPath);
 		}
@@ -106,31 +130,39 @@ function viteWebfontDownload(
 	}
 
 
+
 	/**
 	 * A, Build:
 	 *    1. [hook] configResolved
-	 *    2. [hook] generateBundle
-	 *    3. [hook] transformIndexHtml
-	 *    4. collectFontsFromIndexHtml()
-	 *    5. loadCssAndFonts()
-	 *    6. downloadFonts()
-	 *    7. replaceFontUrls()
-	 *    8. [optional] saveCss()
-	 *    9. injectToHtml()
+	 *    2. [hook] transformIndexHtml
+	 *    3.   ↳ collectFontsFromIndexHtml()
+	 *    4. [hook] generateBundle
+	 *    5.   ↳ loadCssAndFonts()
+	 *    6.   ↳ downloadFonts()
+	 *    7.   ↳ replaceFontUrls()
+	 *    8.   ↳ [optional] saveCss()
+	 *    9.   ↳ removeTags()
+	 *    10.  ↳ injectToHtml()
 	 *
 	 * B, Dev server:
 	 *    1. [hook] configResolved
 	 *    2. [hook] configureServer: middleware init
-	 *    3. configureServer: middleware index.html
 	 *    4. [hook] transformIndexHtml
-	 *    5. collectFontsFromIndexHtml()
-	 *    6. loadCssAndFonts()
-	 *    7. replaceFontUrls()
-	 *    8. injectToHtml()
+	 *    5.   ↳ collectFontsFromIndexHtml()
+	 *    6.   ↳ removeTags()
+	 *    7.   ↳ injectToHtml()
+	 *    8. [middleware]
+	 *    9.   ↳ webfonts.css
+	 *    10.    ↳ loadCssAndFonts()
+	 *    11.    ↳ replaceFontUrls()
+	 *    12.  ↳ *.(woff2?|eot|ttf|otf|svg)
+	 *    13.    ↳ downloadFont()
 	 */
 
 	return {
 		name: 'vite-plugin-webfont-dl',
+
+		enforce: 'post',
 
 		configResolved(resolvedConfig: ResolvedConfig) {
 			base = resolvedConfig.base;
@@ -140,22 +172,6 @@ function viteWebfontDownload(
 
 		configureServer(_viteDevServer: ViteDevServer) {
 			viteDevServer = _viteDevServer;
-
-			const fontUrlsDevMap: Map<string, string> = new Map();
-
-			const loadAndPrepareDevFonts = async () => {
-				await loadCssAndFonts();
-				replaceFontUrls();
-
-				// create fonts map
-				fontUrlsDevMap.clear();
-
-				for (const fontFileName in fonts) {
-					const font = fonts[fontFileName];
-
-					fontUrlsDevMap.set(font.localPath, font.url);
-				}
-			};
 
 			viteDevServer.middlewares.use((
 				req: Connect.IncomingMessage,
@@ -179,7 +195,7 @@ function viteWebfontDownload(
 
 					} else if (url && fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
 						res.end(
-							await fontLoader.load(
+							await downloadFont(
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 								fontUrlsDevMap.get(url)!
 							)
@@ -192,28 +208,41 @@ function viteWebfontDownload(
 			});
 		},
 
-		generateBundle() {
-			// eslint-disable-next-line @typescript-eslint/no-this-alias
-			pluginContext = this;
-		},
+		transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
+			indexHtmlContent = html;
+			indexHtmlPath = ctx.path.replace(new RegExp(`^${base}`), '');
 
-		async transformIndexHtml(html: string) {
-			collectFontsFromIndexHtml(html);
-
-			if (!viteDevServer) {
-				await loadCssAndFonts();
-				await downloadFonts();
-				replaceFontUrls();
-
-				if (options.injectAsStyleTag === false) {
-					saveCss();
-				}
+			if (viteDevServer) {
+				collectFontsFromIndexHtml(html);
+				html = indexHtmlProcessor.removeTags(html);
+				html = injectToHtml(html);
 			}
 
-			html = indexHtmlProcessor.removeTags(html);
-			html = injectToHtml(html, cssContent, base, cssPath);
-
 			return html;
+		},
+
+		async generateBundle(_options, bundle: OutputBundle) {
+			// eslint-disable-next-line @typescript-eslint/no-this-alias
+			pluginContext = this;
+
+			if (indexHtmlContent !== undefined) {
+				collectFontsFromIndexHtml(indexHtmlContent);
+			}
+
+			await loadCssAndFonts();
+			await downloadFonts();
+			replaceFontUrls();
+
+			if (options.injectAsStyleTag === false || indexHtmlContent === undefined) {
+				saveCss();
+			}
+
+			if (bundle[indexHtmlPath] !== undefined) {
+				indexHtmlContent = indexHtmlProcessor.removeTags(indexHtmlContent);
+				indexHtmlContent = injectToHtml(indexHtmlContent, cssContent);
+
+				(bundle[indexHtmlPath] as OutputAsset).source = indexHtmlContent;
+			}
 		},
 	};
 }

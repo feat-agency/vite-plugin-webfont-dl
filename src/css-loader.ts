@@ -8,7 +8,7 @@ export class CssLoader {
 
 	constructor(private options: Options) { }
 
-	public async loadAll(urls: Set<string>): Promise<string> {
+	public async loadAll(urls: Set<string>, isDevServer?: boolean): Promise<string> {
 		let cssContent = '';
 
 		for (const url of urls) {
@@ -18,11 +18,23 @@ export class CssLoader {
 			cssContent += singleCssContent + '\n';
 		}
 
-		if (this.options.minifyCss) {
-			return new CleanCss().minify(cssContent).styles;
+		if (!isDevServer && this.options.minifyCss) {
+			return this.minify(cssContent);
 		}
 
 		return cssContent.trim();
+	}
+
+	public minify(cssContent: string) {
+		return new CleanCss().minify(cssContent).styles;
+	}
+
+	public normalizeUrls(cssContent: string, cssUrl: string) {
+		return cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
+			const urlObject = new URL(match, cssUrl);
+
+			return urlObject.href;
+		});
 	}
 
 	private async load(url: string) {
@@ -37,14 +49,6 @@ export class CssLoader {
 		});
 
 		return response.data as string;
-	}
-
-	private normalizeUrls(cssContent: string, cssUrl: string) {
-		return cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
-			const urlObject = new URL(match, cssUrl);
-
-			return urlObject.href;
-		});
 	}
 }
 
