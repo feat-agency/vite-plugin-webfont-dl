@@ -181,7 +181,14 @@ function viteWebfontDownload(
 				void (async () => {
 					const url = req.originalUrl?.replace(/[?#].*$/, '');
 
-					if (url && url === base + cssPath) { // /assets/webfonts.css
+					if (!url) {
+						return next();
+					}
+
+					if (
+						url === base + cssPath || // /assets/webfonts.css
+						url === base + cssFilename // /webfonts.css
+					) {
 						try {
 							await loadAndPrepareDevFonts();
 							res.end(cssContent);
@@ -193,7 +200,9 @@ function viteWebfontDownload(
 							res.end();
 						}
 
-					} else if (url && fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
+					} else if (fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
+						res.setHeader('Access-Control-Allow-Origin', '*');
+
 						res.end(
 							await downloadFont(
 								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion

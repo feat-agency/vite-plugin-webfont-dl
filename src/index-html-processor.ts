@@ -9,7 +9,7 @@ export class IndexHtmlProcessor {
 	];
 
 	private googleFontUrls = [
-		'https://fonts.googleapis.com'
+		'https://fonts.googleapis.com',
 	];
 
 	parse(html: string): Set<string> {

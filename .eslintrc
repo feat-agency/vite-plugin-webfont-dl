@@ -18,6 +18,10 @@
 		"plugin:@typescript-eslint/recommended",
 		"plugin:@typescript-eslint/recommended-requiring-type-checking"
 	],
+	"rules": {
+		"comma-dangle": ["error", "always-multiline"],
+		"comma-style": ["error", "last"]
+	},
 	"ignorePatterns": [
 		"dist/",
 		"node_modules/"
