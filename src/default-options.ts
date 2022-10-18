@@ -4,7 +4,7 @@ const defaultOptions: Options = {
 	injectAsStyleTag: true,
 	minifyCss: true,
 	async: true,
-}
+};
 
 export const getOptionsWithDefaults = (options: Options = {}): Options => {
 
@@ -12,4 +12,4 @@ export const getOptionsWithDefaults = (options: Options = {}): Options => {
 		...defaultOptions,
 		...options,
 	};
-}
+};
