@@ -73,8 +73,8 @@ npm i vite-plugin-webfont-dl -D
 <br>
 
 ## 🚀 That's all!
-From here the fonts are injected and available globally. Plugin works seamlessly even when working on local development server.
-
+The webfonts are **injected and ready to use**.<br>
+The plugin does its job seamlessly whether you are working on local development server or building to production.
 
 ```css
 h1 {
@@ -84,6 +84,12 @@ h1 {
 h2 {
   font-family: 'Fira Code', monospace;
 }
+```
+
+### Laravel
+To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add this line to your blade file:
+```blade
+@vite('webfonts.css')
 ```
 
 <br>
