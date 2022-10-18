@@ -173,6 +173,9 @@ function viteWebfontDownload(
 		configureServer(_viteDevServer: ViteDevServer) {
 			viteDevServer = _viteDevServer;
 
+			assetsDir = '@webfonts';
+			cssPath = assetsDir + '/' + cssFilename;
+
 			viteDevServer.middlewares.use((
 				req: Connect.IncomingMessage,
 				res: ServerResponse,
@@ -186,7 +189,7 @@ function viteWebfontDownload(
 					}
 
 					if (
-						url === base + cssPath || // /assets/webfonts.css
+						url === base + cssPath || // /@webfonts/webfonts.css
 						url === base + cssFilename // /webfonts.css
 					) {
 						try {

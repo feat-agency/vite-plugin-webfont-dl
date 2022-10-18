@@ -23,7 +23,7 @@ export class CssParser {
 
 					fonts[filename] = {
 						url,
-						localPath: base + assetsDir + '/' + filename,
+						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename,
 					};
 				}
 			}
@@ -37,7 +37,7 @@ export class CssParser {
 				if (filename) {
 					fonts[filename + '.woff2'] = {
 						url,
-						localPath: base + assetsDir + '/' + filename + '.woff2',
+						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename + '.woff2',
 					};
 				}
 			}
