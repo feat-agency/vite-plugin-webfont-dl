@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.3.0-beta.2",
+	"version": "3.3.0-beta.3",
 	"type": "module",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
@@ -39,7 +39,8 @@
 	"license": "MIT",
 	"dependencies": {
 		"axios": "^0.25",
-		"clean-css": "^5.3"
+		"clean-css": "^5.3",
+		"picocolors": "^1.0"
 	},
 	"peerDependencies": {
 		"vite": "^2 || ^3"

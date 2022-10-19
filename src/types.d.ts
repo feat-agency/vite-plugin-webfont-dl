@@ -19,7 +19,7 @@ export interface Options {
 
 	/**
 	 * Minify CSS code during build.
-	 * default: `true`
+	 * default: value of `build.minify`
 	 * */
 	minifyCss?: boolean;
 

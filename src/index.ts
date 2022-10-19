@@ -224,6 +224,10 @@ function viteWebfontDownload(
 			base = resolvedConfig.base;
 			assetsDir = resolvedConfig.build.assetsDir;
 			cssPath = assetsDir + '/' + cssFilename;
+
+			if (resolvedConfig.build.minify === false && _options?.minifyCss !== true) {
+				options.minifyCss = false;
+			}
 		},
 
 		configureServer(_viteDevServer: ViteDevServer) {

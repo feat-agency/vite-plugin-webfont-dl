@@ -157,7 +157,7 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 - **`injectAsStyleTag`** <small>(`boolean`, default: `true`)</small>:<br>
   Inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
 
-- **`minifyCss`** <small>(`boolean`, default: `true`)</small>:<br>
+- **`minifyCss`** <small>(`boolean`, default: *value of* `build.minify`)</small>:<br>
   Minify CSS code during build.
 
 - **`async`** <small>(`boolean`, default: `true`)</small>:<br>
