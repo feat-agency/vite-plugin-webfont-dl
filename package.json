@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.3.0",
+	"version": "3.4.0",
 	"type": "module",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
@@ -10,6 +10,7 @@
 		"webfont-dl",
 		"webfont-download",
 		"google-fonts",
+		"bunny-fonts",
 		"vue",
 		"react"
 	],

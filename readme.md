@@ -4,16 +4,6 @@
 [![NPM downloads](https://img.shields.io/npm/dt/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 
 
-⚠️ Using the standard method to add webfonts (like Google Fonts) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** audit calls this a ***"render-blocking resource"***, which means that the page can't load until the font has been fetched from the Google Fonts server.
-
-📈 By avoiding render-blocking resources caused by Google Fonts loading, you can **boost page performance** which leads to **better user-experience** and **improves SEO results**.
-
-⚙️ The plugin **downloads the given fonts from Google Fonts and dynamically injects** them *(internal or external CSS)* into your Vite project.
-
-💡 **Webfont-DL plugin** lets you leverage the flexibility of Google Fonts without trade-offs when it comes to page perfomance.
-
-<br>
-
 ## 📦 Install
 ```bash
 npm i vite-plugin-webfont-dl -D
@@ -21,7 +11,7 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 😎 Usage <sub><sup>[method 🅰️]</sub></sup>: **Zero config**
+## 😎 Usage: **Zero config** <sub><sup>[method 🅰️]</sub></sup> <a name="zero-config"></a>
 
 *Extracts, downloads and injects fonts from the **original Google Fonts code snippet**.*
 
@@ -46,7 +36,7 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 🦄 Usage <sub><sup>[method 🅱️]</sub></sup>: **Simple config**
+## 🦄 Usage: **Simple config** <sub><sup>[method 🅱️]</sub></sup> <a name="simple-config"></a>
 
 *Extracts, downloads and injects fonts from the **configured webfont CSS URL(s)**.*
 
@@ -91,6 +81,23 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 ```blade
 @vite('webfonts.css')
 ```
+
+<br>
+
+### ❓ Third-party webfonts
+
+⚠️ Using the standard method to add third-party webfonts (like [Google Fonts](https://fonts.google.com) or [Bunny Fonts](https://bunny.net/fonts/)) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** calls them ***"render-blocking resource"***, which means the page can't render fully until the webfonts CSS hasn't been fetched from the remote server.
+
+📈 By avoiding render-blocking resources caused by third-party webfonts, you can **boost page performance** which leads to **better user-experience** and it **improves SEO results**.
+
+⚙️ The plugin **downloads the given fonts from the third-party webfont service *(like Google Fonts)* and dynamically injects** them *(as an internal or external stylesheet)* into your Vite project, transforming the third-party webfonts into **self-hosted** ones. 🤩
+
+🔐 In addition to the significant **performance increase**, your visitors will also benefit to **privacy protection**, since there is no third-party server involved.
+
+Supported webfont providers:
+- **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- Any provider with CSS (containing font definitions): works with [Simple config](#simple-config)
 
 <br>
 

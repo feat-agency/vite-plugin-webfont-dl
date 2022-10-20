@@ -1,37 +1,45 @@
-function escapeRegExp(value: string) {
-    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 export class IndexHtmlProcessor {
-	private googlePreconnectUrls = [
-		'https://fonts.googleapis.com',
-		'https://fonts.gstatic.com',
+	private webfontRegexes = [
+		// <link rel="stylesheet" href="...">
+		// <link href="..." rel="stylesheet">
+
+		// https://fonts.googleapis.com
+		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]*>/g,
+		/<link[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+
+		// https://fonts.bunny.net
+		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/g,
+		/<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 	];
 
-	private googleFontUrls = [
-		'https://fonts.googleapis.com',
+	private preconnectRegexes = [
+		// <link rel="preconnect" href="...">
+		// <link rel="preconnect" href="..." crossorigin>
+		// <link href="..." rel="preconnect">
+		// <link href="..." rel="preconnect" crossorigin>
+
+		// https://fonts.googleapis.com
+		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/fonts\.googleapis\.com['"]?[^>]*>/,
+		/<link[^>]+href=['"]?https:\/\/fonts\.googleapis\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
+
+		// https://fonts.gstatic.com
+		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/fonts\.gstatic\.com['"]?[^>]*>/,
+		/<link[^>]+href=['"]?https:\/\/fonts\.gstatic\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
+
+		// https://fonts.bunny.net
+		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/fonts\.bunny\.net['"]?[^>]*>/,
+		/<link[^>]+href=['"]?https:\/\/fonts\.bunny\.net['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
 	];
 
 	parse(html: string): Set<string> {
 		const webfontUrls = new Set<string>();
 
-		for (const url of this.googleFontUrls) {
-			const escapedUrl = escapeRegExp(url);
+		for (const regex of this.webfontRegexes) {
+			const matches = html.matchAll(regex);
 
-			// <link rel="stylesheet" href="...">
-			// <link href="..." rel="stylesheet">
-			const regexes = [
-				new RegExp(`<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(${escapedUrl}[^'">]+)['"]?[^>]*>`, 'g'),
-				new RegExp(`<link[^>]+href=['"]?(${escapedUrl}[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>`, 'g'),
-			];
-
-			for (const regex of regexes) {
-				const matches = html.matchAll(regex);
-
-				if (matches) {
-					for (const match of matches) {
-						webfontUrls.add(match[1]);
-					}
+			if (matches) {
+				for (const match of matches) {
+					webfontUrls.add(match[1]);
 				}
 			}
 		}
@@ -47,40 +55,18 @@ export class IndexHtmlProcessor {
 	}
 
 	private removePreconnectTags(html: string): string {
-		for (const url of this.googlePreconnectUrls) {
-			const escapedUrl = escapeRegExp(url);
-
-			// <link rel="preconnect" href="...">
-			// <link rel="preconnect" href="..." crossorigin>
-			// <link href="..." rel="preconnect">
-			// <link href="..." rel="preconnect" crossorigin>
-			const regexes = [
-				new RegExp(`[ \t]*<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?${escapedUrl}['"]?[^>]*>(\r\n|\r|\n)?`, 'g'),
-				new RegExp(`[ \t]*<link[^>]+href=['"]?${escapedUrl}['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>(\r\n|\r|\n)?`, 'g'),
-			];
-
-			for (const regex of regexes) {
-				html = html.replace(regex, '');
-			}
+		for (const regex of this.preconnectRegexes) {
+			const removeRegex = new RegExp('[ \t]*' + regex.source + '(\r\n|\r|\n)?', 'g');
+			html = html.replace(removeRegex, '');
 		}
 
 		return html;
 	}
 
 	private removeWebfontTags(html: string): string {
-		for (const url of this.googleFontUrls) {
-			const escapedUrl = escapeRegExp(url);
-
-			// <link rel="stylesheet" href="...">
-			// <link href="..." rel="stylesheet">
-			const regexes = [
-				new RegExp(`[ \t]*<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?${escapedUrl}['"]?[^>]*>(\r\n|\r|\n)?`, 'g'),
-				new RegExp(`[ \t]*<link[^>]+href=['"]?${escapedUrl}['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>(\r\n|\r|\n)?`, 'g'),
-			];
-
-			for (const regex of regexes) {
-				html = html.replace(regex, '');
-			}
+		for (const regex of this.webfontRegexes) {
+			const removeRegex = new RegExp('[ \t]*' + regex.source + '(\r\n|\r|\n)?', 'g');
+			html = html.replace(removeRegex, '');
 		}
 
 		return html;
