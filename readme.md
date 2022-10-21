@@ -82,6 +82,9 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 @vite('webfonts.css')
 ```
 
+### Screenshot
+<img src="./img/terminal.png" width="400" />
+
 <br>
 
 ### ❓ Third-party webfonts
