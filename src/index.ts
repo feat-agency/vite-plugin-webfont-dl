@@ -282,7 +282,7 @@ function viteWebfontDownload(
 
 		transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
 			indexHtmlContent = html;
-			indexHtmlPath = ctx.path.replace(new RegExp(`^${base}`), '');
+			indexHtmlPath = ctx.path.replace(/^\//, '');
 
 			if (viteDevServer) {
 				collectFontsFromIndexHtml(html);
