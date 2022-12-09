@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.4.1",
+	"version": "3.4.2",
 	"type": "module",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
@@ -44,7 +44,7 @@
 		"picocolors": "^1.0"
 	},
 	"peerDependencies": {
-		"vite": "^2 || ^3"
+		"vite": "^2 || ^3 || ^4"
 	},
 	"devDependencies": {
 		"@types/clean-css": "^4.2",
