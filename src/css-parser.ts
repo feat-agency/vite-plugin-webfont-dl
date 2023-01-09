@@ -2,10 +2,10 @@ import type { Font } from "./types";
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
-	private googleFontsKitSrcRegex = /https:\/\/fonts.gstatic.com\/l\/font\?kit=[a-z0-9&=]+/gi;
+	private googleFontsKitSrcRegex = /https:\/\/fonts.gstatic.com\/l\/font\?kit=[a-z0-9_\-&=]+/gi;
 
 	private fontFilenameRegex = /[^/]+\.(?:woff2?|eot|ttf|otf|svg)/i;
-	private googleFontsFileRegex = /\?kit=([a-z0-9]+)/i;
+	private googleFontsFileRegex = /\?kit=([a-z0-9_\-]+)/i;
 
 	public parse(cssContent: string, base: string, assetsDir: string): {[key: string]: Font} {
 		const fonts: {[key: string]: Font} = {};
