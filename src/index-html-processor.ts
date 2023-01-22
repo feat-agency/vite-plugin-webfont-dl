@@ -10,6 +10,10 @@ export class IndexHtmlProcessor {
 		// https://fonts.bunny.net
 		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/g,
 		/<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+
+		// https://api.fontshare.com
+		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/g,
+		/<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 	];
 
 	private preconnectRegexes = [
@@ -29,6 +33,10 @@ export class IndexHtmlProcessor {
 		// https://fonts.bunny.net
 		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/fonts\.bunny\.net['"]?[^>]*>/,
 		/<link[^>]+href=['"]?https:\/\/fonts\.bunny\.net['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
+
+		// https://api.fontshare.com
+		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]*>/,
+		/<link[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
 	];
 
 	parse(html: string): Set<string> {
