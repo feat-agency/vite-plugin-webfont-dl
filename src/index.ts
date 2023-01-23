@@ -236,47 +236,71 @@ function viteWebfontDownload(
 			assetsDir = '@webfonts';
 			cssPath = assetsDir + '/' + cssFilename;
 
+			const handleDevServerWebfontsCss = (
+				req: Connect.IncomingMessage,
+				res: ServerResponse,
+			) => {
+				void (async () => {
+					try {
+						await loadAndPrepareDevFonts();
+						res.end(cssContent);
+					} catch (error) {
+						console.error('[webfont-dl]', (error as Error).message);
+
+						res.statusCode = 502;
+						res.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
+						res.end();
+					}
+				})();
+			};
+
+			const handleDevServerWebfont = (
+				req: Connect.IncomingMessage,
+				res: ServerResponse,
+			) => {
+				void (async () => {
+					const url = req.originalUrl?.replace(/[?#].*$/, '');
+
+					res.setHeader('Access-Control-Allow-Origin', '*');
+
+					res.end(
+						await downloadFont(
+							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+							fontUrlsDevMap.get(url!)!
+						)
+					);
+				})();
+			};
+
+			viteDevServer.middlewares.use(
+				base + cssPath, // /@webfonts/webfonts.css
+				handleDevServerWebfontsCss
+			);
+
+			viteDevServer.middlewares.use(
+				base + cssFilename, // /webfonts.css (Laravel Vite Plugin)
+				handleDevServerWebfontsCss
+			);
+
 			viteDevServer.middlewares.use((
 				req: Connect.IncomingMessage,
 				res: ServerResponse,
 				next: Connect.NextFunction
 			) => {
-				void (async () => {
-					const url = req.originalUrl?.replace(/[?#].*$/, '');
+				const url = req.originalUrl?.replace(/[?#].*$/, '');
 
-					if (!url) {
-						return next();
-					}
+				if (!url) {
+					return next();
+				}
 
-					if (
-						url === base + cssPath || // /@webfonts/webfonts.css
-						url === base + cssFilename // /webfonts.css
-					) {
-						try {
-							await loadAndPrepareDevFonts();
-							res.end(cssContent);
-						} catch (error) {
-							console.error('[webfont-dl]', (error as Error).message);
-
-							res.statusCode = 502;
-							res.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
-							res.end();
-						}
-
-					} else if (fontUrlsDevMap.has(url)) { // /assets/xxx.woff2
-						res.setHeader('Access-Control-Allow-Origin', '*');
-
-						res.end(
-							await downloadFont(
-								// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-								fontUrlsDevMap.get(url)!
-							)
-						);
-
-					} else {
-						next();
-					}
-				})();
+				if ( // /assets/xxx.woff2
+					url.match(/\.(?:woff2?|eot|ttf|otf|svg)$/) &&
+					fontUrlsDevMap.has(url)
+				) {
+					handleDevServerWebfont(req, res);
+				} else {
+					next();
+				}
 			});
 		},
 
