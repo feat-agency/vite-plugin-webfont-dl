@@ -3,7 +3,7 @@ import { stdout, env } from 'process';
 import { OutputAsset, OutputBundle, PluginContext } from 'rollup';
 import type { ViteDevServer, Connect, ResolvedConfig, Plugin, IndexHtmlTransformContext } from 'vite';
 import colors from 'picocolors';
-import type { Font, Options } from './types';
+import type { FontsCollection, Options } from './types';
 import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
 import { CssInjector } from './css-injector';
@@ -31,7 +31,7 @@ function viteWebfontDownload(
 	const options: Options = getOptionsWithDefaults(_options);
 
 
-	let fonts: { [key: string]: Font } = {};
+	let fonts: FontsCollection = {};
 	const cssFilename = 'webfonts.css';
 
 	const fontUrlsDevMap: Map<string, string> = new Map();

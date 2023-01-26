@@ -3,6 +3,9 @@ export interface Font {
 	localPath: string;
 }
 
+export interface FontsCollection {
+	[key: string]: Font;
+}
 /**
  * This is the description of the interface
  *

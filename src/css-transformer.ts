@@ -1,9 +1,9 @@
-import type { Font } from "./types";
+import type { FontsCollection } from "./types";
 
 export class CssTransformer {
 	public transform(
 		cssContent: string,
-		fonts: {[key: string]: Font}
+		fonts: FontsCollection
 	): string {
 		for (const fontFile in fonts) {
 			const font = fonts[fontFile];

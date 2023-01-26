@@ -1,4 +1,4 @@
-import type { Font } from "./types";
+import type { FontsCollection, ParsedBundleCss } from "./types";
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
