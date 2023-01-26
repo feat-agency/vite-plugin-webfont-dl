@@ -11,20 +11,17 @@ export class CssLoader {
 	public async loadAll(urls: Set<string>, isDevServer?: boolean): Promise<string> {
 		let cssContent = '';
 
-		console.log('[webfont-dl] loadAll()');
-
 		for (const url of urls) {
-			console.log(`[webfont-dl] downloading ${url}`);
-
 			const css = await this.load(url);
-			console.log(`[webfont-dl] css length ${css.length}`);
-
 			const cssNormalized = this.normalizeUrls(css.trim(), url);
-			console.log(`[webfont-dl] css normalized length ${cssNormalized.length}`);
 
 			cssContent += cssNormalized + '\n';
 		}
 
+		return this.formatCss(cssContent, isDevServer);
+	}
+
+	public formatCss(cssContent: string, isDevServer?: boolean): string {
 		if (!isDevServer && this.options.minifyCss) {
 			return this.minify(cssContent);
 		}
@@ -54,8 +51,6 @@ export class CssLoader {
 				'User-Agent': userAgentWoff2,
 			},
 		});
-
-		console.log(`[webfont-dl] ${response.status} ${response.statusText}`);
 
 		return response.data as string;
 	}

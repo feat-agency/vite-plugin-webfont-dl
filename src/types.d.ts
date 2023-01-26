@@ -6,6 +6,13 @@ export interface Font {
 export interface FontsCollection {
 	[key: string]: Font;
 }
+
+export interface ParsedBundleCss {
+	fonts: FontsCollection;
+	webfontUrlsCss: Set<string>;
+	matchedCssParts: string[];
+}
+
 /**
  * This is the description of the interface
  *
