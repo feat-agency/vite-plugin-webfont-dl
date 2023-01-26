@@ -117,7 +117,7 @@ Supported webfont providers:
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
 ```
 
-📱 What happens on client-side with **Google Fonts**:
+📱 What happens on **client-side** with **Google Fonts**:
 1. First line gives a hint to the browser to begin the connection handshake *(DNS, TCP, TLS)* with `fonts.googleapis.com`. This happens in the background to improve performance. [**`preconnect`**]
 1. Second line is another preconnect hint to `fonts.gstatic.com`. [**`preconnect`**]
 1. Third line instructs the browser to load and use a CSS stylesheet file from `fonts.googleapis.com` *(with [`font-display:swap`](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display#values))*. [**`stylesheet`**]
@@ -131,7 +131,14 @@ Supported webfont providers:
 
 On the contrary, **Webfont-DL plugin** does most of the job at build time, leaves the minimum to the browser.
 
-**Webfont-DL plugin** downloads the Google Fonts CSS file(s), extracts the font URLs, downloads the fonts, generates an embedded CSS (`<style>` tag) **or** a webfont / external CSS file, add them to the bundle and injects the following code into your website's `<head>` using a non-render blocking method, *example*:
+**Webfont-DL plugin**
+- collects the webfont CSS URLs (from plugin config, `index.html` and the generated CSS)
+- downloads the webfont CSS file(s)
+- extracts the font URLs
+- downloads the fonts
+- adds the fonts to the bundle
+- generates an embedded CSS (`<style>` tag) **or** a webfont / external CSS file
+- add them to the bundle and injects the following code into your website's `<head>` using a non-render blocking method, *example*:
 
 ```html
 <style>
@@ -153,7 +160,7 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 <link rel="stylesheet" media="print" onload="this.onload=null;this.removeAttribute('media');" href="/assets/webfonts.b904bd45.css">
 ```
 
-📱 What happens on client-side with **Webfont-DL plugin**:
+📱 What happens on **client-side** with **Webfont-DL plugin**:
 
 1. Load fonts from the embedded CSS (`<style>` tag).
 
