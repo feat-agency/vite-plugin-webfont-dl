@@ -1,6 +1,6 @@
 import { ServerResponse } from 'http';
 import { stdout, env } from 'process';
-import { OutputAsset, OutputBundle, PluginContext } from 'rollup';
+import { NormalizedOutputOptions, OutputAsset, OutputBundle, PluginContext } from 'rollup';
 import type { ViteDevServer, Connect, ResolvedConfig, Plugin, IndexHtmlTransformContext } from 'vite';
 import colors from 'picocolors';
 import type { FontsCollection, Options } from './types';
@@ -370,7 +370,7 @@ function viteWebfontDownload(
 			return html;
 		},
 
-		async generateBundle(_options, bundle: OutputBundle) {
+		async generateBundle(_options: NormalizedOutputOptions, bundle: OutputBundle) {
 			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			pluginContext = this;
 
