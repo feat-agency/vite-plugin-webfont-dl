@@ -14,6 +14,7 @@ export class CssParser {
 		/https:\/\/fonts\.gstatic\.com\//i,
 		/https:\/\/fonts\.bunny\.net\//i,
 		/https:\/\/api\.fontshare\.com\//i,
+		/https:\/\/fonts\.cdnfonts\.com\//i,
 	];
 
 	public parse(cssContent: string, base: string, assetsDir: string): FontsCollection {
