@@ -15,7 +15,7 @@ npm i vite-plugin-webfont-dl -D
 
 *Extracts, downloads and injects fonts from the **original Google Fonts code snippet**.*
 
-0. Select your font families at [Google Fonts](https://fonts.google.com) and copy the code into `<head>` from the ***"Use on the web"*** block:
+0. Select your font families in your [webfont provider](#-supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the code into `<head>` from the ***"Use on the web"*** block:
 	```html
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +40,7 @@ npm i vite-plugin-webfont-dl -D
 
 *Extracts, downloads and injects fonts from the **configured webfont CSS URL(s)**.*
 
-0. Select your font families at [Google Fonts](https://fonts.google.com) and copy the **CSS URL**(s) from the ***"Use on the web"*** code block:
+0. Select your font families in your [webfont provider](#-supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the **CSS URL**(s) from the ***"Use on the web"*** code block:
 	```html
 	<link href="[CSS URL]" rel="stylesheet">
 	```
@@ -87,6 +87,15 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 
 <br>
 
+### 🧩 Supported webfont providers
+- **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[Fontshare](https://www.fontshare.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[CDNFonts](https://www.cdnfonts.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- *any provider with CSS (containing `@font-face` definitions) works with [Simple config](#simple-config)*
+
+<br>
+
 ### ❓ Third-party webfonts
 
 ⚠️ Using the standard method to add third-party webfonts ([Google Fonts](https://fonts.google.com), [Bunny Fonts](https://bunny.net/fonts/), [Fontshare](https://www.fontshare.com) or [CDNFonts](https://www.cdnfonts.com)) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** calls them ***"render-blocking resource"***, which means the page can't render fully until the webfonts CSS hasn't been fetched from the remote server.
@@ -96,13 +105,6 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 ⚙️ The plugin **downloads the given fonts from the third-party webfont service *(like Google Fonts)* and dynamically injects** them *(as an internal or external stylesheet)* into your Vite project, transforming the third-party webfonts into **self-hosted** ones. 🤩
 
 🔐 In addition to the significant **performance increase**, your visitors will also benefit to **privacy protection**, since there is no third-party server involved.
-
-Supported webfont providers:
-- **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
-- **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
-- **[Fontshare](https://www.fontshare.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
-- **[CDNFonts](https://www.cdnfonts.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
-- Any provider with CSS (containing font definitions): works with [Simple config](#simple-config)
 
 <br>
 
