@@ -21,11 +21,12 @@
 	"rules": {
 		"comma-dangle": ["error", "always-multiline"],
 		"comma-style": ["error", "last"],
+		"quotes": ["warn", "single"],
 		"semi": ["error", "always"],
 		"semi-spacing": ["error", {
 			"before": false,
 			"after": true
-		}],
+		}]
 	},
 	"ignorePatterns": [
 		"dist/",

@@ -34,16 +34,6 @@ describe('index.html processor', () => {
 
 
 
-	it('should find CDNFonts', () => {
-		const html = readFileSync(__dirname + '/fixtures/index-cdnfonts.html').toString();
-		const fonts = (new IndexHtmlProcessor()).parse(html);
-
-		expect(fonts.size).eq(1);
-		expect(fonts.has('https://fonts.cdnfonts.com/css/glowkin-demo')).toBeTruthy();
-	});
-
-
-
 	it('should not find any fonts', () => {
 		const html = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const fonts = (new IndexHtmlProcessor()).parse(html);
@@ -95,22 +85,6 @@ describe('index.html processor', () => {
 
 		const preconnectTag = '<link rel="preconnect" href="https://api.fontshare.com">';
 		const stylesheetTag = '<link href="https://api.fontshare.com/v2/css?f[]=general-sans@200,300&f[]=cabinet-grotesk@200&display=swap" rel="stylesheet">';
-
-		expect(htmlBefore).contains(preconnectTag);
-		expect(htmlAfter).not.contains(preconnectTag);
-
-		expect(htmlBefore).contains(stylesheetTag);
-		expect(htmlAfter).not.contains(stylesheetTag);
-	});
-
-
-
-	it('should remove CDNFonts tags', () => {
-		const htmlBefore = readFileSync(__dirname + '/fixtures/index-cdnfonts.html').toString();
-		const htmlAfter = (new IndexHtmlProcessor()).removeTags(htmlBefore);
-
-		const preconnectTag = '<link rel="preconnect" href="https://fonts.cdnfonts.com">';
-		const stylesheetTag = '<link href="https://fonts.cdnfonts.com/css/glowkin-demo" rel="stylesheet">';
 
 		expect(htmlBefore).contains(preconnectTag);
 		expect(htmlAfter).not.contains(preconnectTag);

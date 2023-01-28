@@ -1,7 +1,7 @@
-import { ServerResponse } from 'http';
-import { stdout, env } from 'process';
+import { ClientRequest, ServerResponse } from 'http';
+import { env, stdout } from 'process';
 import { NormalizedOutputOptions, OutputAsset, OutputBundle, PluginContext } from 'rollup';
-import type { ViteDevServer, Connect, ResolvedConfig, Plugin, IndexHtmlTransformContext } from 'vite';
+import type { Connect, IndexHtmlTransformContext, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import colors from 'picocolors';
 import type { FontsCollection, Options } from './types';
 import { CssLoader } from './css-loader';
@@ -11,6 +11,7 @@ import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
 import { IndexHtmlProcessor } from './index-html-processor';
 import { getOptionsWithDefaults } from './default-options';
+import { AxiosError } from 'axios';
 
 
 
@@ -120,7 +121,7 @@ function viteWebfontDownload(
 		}
 
 		if (!viteDevServer) {
-			logInfo(`${colors.green(`✓`)} [webfont-dl] ${allWebfontUrls.size} css downloaded.`);
+			logInfo(`${colors.green('✓')} [webfont-dl] ${allWebfontUrls.size} css downloaded.`);
 		}
 
 		return cssContent;
@@ -151,7 +152,7 @@ function viteWebfontDownload(
 			);
 		}
 
-		logInfo(`${colors.green(`✓`)} [webfont-dl] ${Object.values(fonts).length} fonts downloaded.`);
+		logInfo(`${colors.green('✓')} [webfont-dl] ${Object.values(fonts).length} fonts downloaded.`);
 	};
 
 	const downloadFont = async (url: string): Promise<Buffer> => {
@@ -298,7 +299,10 @@ function viteWebfontDownload(
 						await loadAndPrepareDevFonts();
 						res.end(cssContent);
 					} catch (error) {
-						console.error('[webfont-dl]', (error as Error).message);
+						console.error(
+							colors.red('[webfont-dl]'),
+							(error as Error).message
+						);
 
 						res.statusCode = 502;
 						res.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
@@ -380,19 +384,33 @@ function viteWebfontDownload(
 
 			collectWebfontsFromBundleCss(bundle);
 
-			parseFonts(await downloadWebfontCss());
-			await downloadFonts();
-			replaceFontUrls();
+			try {
+				parseFonts(await downloadWebfontCss());
+				await downloadFonts();
+				replaceFontUrls();
 
-			if (options.injectAsStyleTag === false || indexHtmlContent === undefined) {
-				saveCss();
-			}
+				if (options.injectAsStyleTag === false || indexHtmlContent === undefined) {
+					saveCss();
+				}
 
-			if (bundle[indexHtmlPath] !== undefined) {
-				indexHtmlContent = indexHtmlProcessor.removeTags(indexHtmlContent);
-				indexHtmlContent = injectToHtml(indexHtmlContent, cssContent);
+				if (bundle[indexHtmlPath] !== undefined) {
+					indexHtmlContent = indexHtmlProcessor.removeTags(indexHtmlContent);
+					indexHtmlContent = injectToHtml(indexHtmlContent, cssContent);
 
-				(bundle[indexHtmlPath] as OutputAsset).source = indexHtmlContent;
+					(bundle[indexHtmlPath] as OutputAsset).source = indexHtmlContent;
+				}
+			} catch (error) {
+				console.error(colors.red(
+					`[webfont-dl] ${(error as Error).message}`
+				));
+
+				if (error instanceof AxiosError) {
+					if (error.request instanceof ClientRequest) {
+						console.error(colors.red(
+							`[webfont-dl] ${error.request.method} ${error.request.protocol}//${error.request.host}${error.request.path}`
+						));
+					}
+				}
 			}
 		},
 	};

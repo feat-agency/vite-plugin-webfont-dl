@@ -1,4 +1,4 @@
-import type { FontsCollection } from "./types";
+import type { FontsCollection } from './types';
 
 export class CssTransformer {
 	public transform(

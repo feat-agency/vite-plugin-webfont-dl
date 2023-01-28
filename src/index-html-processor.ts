@@ -14,10 +14,6 @@ export class IndexHtmlProcessor {
 		// https://api.fontshare.com
 		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/g,
 		/<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
-
-		// https://fonts.cdnfonts.com
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.cdnfonts\.com[^'">]+)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/fonts\.cdnfonts\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 	];
 
 	private preconnectRegexes = [
@@ -41,10 +37,6 @@ export class IndexHtmlProcessor {
 		// https://api.fontshare.com
 		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]*>/,
 		/<link[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
-
-		// https://fonts.cdnfonts.com
-		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/fonts\.cdnfonts\.com['"]?[^>]*>/,
-		/<link[^>]+href=['"]?https:\/\/fonts\.cdnfonts\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
 	];
 
 	parse(html: string): Set<string> {

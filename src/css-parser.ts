@@ -1,4 +1,4 @@
-import type { FontsCollection, ParsedBundleCss } from "./types";
+import type { FontsCollection, ParsedBundleCss } from './types';
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
@@ -14,7 +14,6 @@ export class CssParser {
 		/https:\/\/fonts\.gstatic\.com\//i,
 		/https:\/\/fonts\.bunny\.net\//i,
 		/https:\/\/api\.fontshare\.com\//i,
-		/https:\/\/fonts\.cdnfonts\.com\//i,
 	];
 
 	public parse(cssContent: string, base: string, assetsDir: string): FontsCollection {

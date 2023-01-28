@@ -91,14 +91,13 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 - **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Fontshare](https://www.fontshare.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
-- **[CDNFonts](https://www.cdnfonts.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - *any provider with CSS (containing `@font-face` definitions) works with [Simple config](#simple-config)*
 
 <br>
 
 ### ❓ Third-party webfonts
 
-⚠️ Using the standard method to add third-party webfonts ([Google Fonts](https://fonts.google.com), [Bunny Fonts](https://bunny.net/fonts/), [Fontshare](https://www.fontshare.com) or [CDNFonts](https://www.cdnfonts.com)) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** calls them ***"render-blocking resource"***, which means the page can't render fully until the webfonts CSS hasn't been fetched from the remote server.
+⚠️ Using the standard method to add third-party webfonts ([Google Fonts](https://fonts.google.com), [Bunny Fonts](https://bunny.net/fonts/) or [Fontshare](https://www.fontshare.com)) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** calls them ***"render-blocking resource"***, which means the page can't render fully until the webfonts CSS hasn't been fetched from the remote server.
 
 📈 By avoiding render-blocking resources caused by third-party webfonts, you can **boost page performance** which leads to **better user-experience** and it **improves SEO results**.
 
