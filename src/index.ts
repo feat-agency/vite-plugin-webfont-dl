@@ -10,6 +10,7 @@ import { CssInjector } from './css-injector';
 import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
 import { IndexHtmlProcessor } from './index-html-processor';
+import { FileCache } from './file-cache';
 import { getOptionsWithDefaults } from './default-options';
 import { AxiosError } from 'axios';
 
@@ -38,12 +39,13 @@ function viteWebfontDownload(
 
 	const fontUrlsDevMap: Map<string, string> = new Map();
 
-	const indexHtmlProcessor = new IndexHtmlProcessor();
-	const cssLoader = new CssLoader(options);
+	const fileCache = new FileCache();
+	const cssLoader = new CssLoader(options, fileCache);
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
-	const fontLoader = new FontLoader();
 	const cssInjector = new CssInjector(options);
+	const fontLoader = new FontLoader(fileCache);
+	const indexHtmlProcessor = new IndexHtmlProcessor();
 
 	let viteDevServer: ViteDevServer;
 	let pluginContext: PluginContext;
@@ -121,7 +123,7 @@ function viteWebfontDownload(
 		}
 
 		if (!viteDevServer) {
-			logInfo(`${colors.green('✓')} [webfont-dl] ${allWebfontUrls.size} css downloaded.`);
+			logInfo(`${colors.green('✓')} [webfont-dl] ${allWebfontUrls.size} css downloaded. ${colors.gray(`[cache hit: ${fileCache.hits.css}/${fileCache.count.css}]`)}`);
 		}
 
 		return cssContent;
@@ -152,7 +154,7 @@ function viteWebfontDownload(
 			);
 		}
 
-		logInfo(`${colors.green('✓')} [webfont-dl] ${Object.values(fonts).length} fonts downloaded.`);
+		logInfo(`${colors.green('✓')} [webfont-dl] ${Object.values(fonts).length} fonts downloaded. ${colors.gray(`[cache hit: ${fileCache.hits.font}/${fileCache.count.font}]`)}`);
 	};
 
 	const downloadFont = async (url: string): Promise<Buffer> => {
