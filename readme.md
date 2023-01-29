@@ -1,8 +1,9 @@
-# 🔌 **Webfont DL** - Vite plugin ⚡
+# 🔠 **Webfont Dowload** Vite plugin ⚡
 
 [![NPM](https://img.shields.io/npm/v/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 [![NPM downloads](https://img.shields.io/npm/dt/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 
+**Collects webfont links, imports and definitions** from your Vite project, **downloads** css and font files, add the fonts to your **bundle** *(or serves through dev server)*, and **injects** font definitions using a **non-render blocking method**, meanwhile stores external css and font files in a **persistent file cache**.
 
 ## 📦 Install
 ```bash
@@ -32,6 +33,10 @@ npm i vite-plugin-webfont-dl -D
 	    webfontDownload(),
 	  ],
 	};
+	```
+2. The original webfont tags will be replaced in `dist/index.html`:
+	```html
+	<style>@font-face{font-family:...;src:url(/assets/foo-xxxxxxxx.woff2) format('woff2'),url(/assets/bar-yyyyyyyy.woff) format('woff')}...</style>
 	```
 
 <br>
@@ -184,6 +189,10 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
   Prevent the usage of inline event handlers (`webfonts.css`) that can cause Content Security Policy issues.<br>
   Works only with **`injectAsStyleTag:false`**.
 
+- **`cache`** <small>(`boolean`, default: `true`)</small>:<br>
+  Persistently store downloaded css and font files in local file cache.<br>
+  If set to `false` the existing cache will be deleted.
+
 *usage:*
 
 ```js
@@ -192,7 +201,8 @@ ViteWebfontDownload(
   {
     injectAsStyleTag: true,
     minifyCss: true,
-    async: true
+    async: true,
+    cache: true
   }
 )
 ```
@@ -207,7 +217,8 @@ ViteWebfontDownload(
   {
     injectAsStyleTag: true,
     minifyCss: true,
-    async: true
+    async: true,
+    cache: true
   }
 )
 ```
