@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { CssLoader } from 'src/css-loader';
+import { FileCache } from 'src/file-cache';
 import { Options } from 'src/types';
 import { describe, expect, it } from 'vitest';
 
@@ -13,7 +14,7 @@ describe('css loader', () => {
 		const cssBefore = readFileSync(__dirname + '/fixtures/google-fonts.css').toString();
 		const cssExpected = readFileSync(__dirname + '/fixtures/google-fonts.min.css').toString().replace(/\n$/, '');
 
-		const cssAfter = (new CssLoader(options)).minify(cssBefore);
+		const cssAfter = (new CssLoader(options, new FileCache())).minify(cssBefore);
 
 		expect(cssAfter).eq(cssExpected);
 	});
@@ -23,7 +24,7 @@ describe('css loader', () => {
 	it('should normalize relative urls', () => {
 		const cssBefore = readFileSync(__dirname + '/fixtures/relative.css').toString();
 		const cssExpected = readFileSync(__dirname + '/fixtures/relative-to-absolute.css').toString();
-		const cssAfter = (new CssLoader({})).normalizeUrls(cssBefore, 'https://www.example.com/css/test.css');
+		const cssAfter = (new CssLoader({}, new FileCache())).normalizeUrls(cssBefore, 'https://www.example.com/css/test.css');
 
 		expect(cssAfter).eq(cssExpected);
 	});
