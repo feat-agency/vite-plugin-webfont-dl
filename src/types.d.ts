@@ -39,5 +39,12 @@ export interface Options {
 	 * default: `true`
 	 * */
 	async?: boolean;
+
+	/**
+	 * Persistently store downloaded css and font files in local file cache.
+	 * If set to `false` the existing cache will be deleted.
+	 * default: `true`
+	 * */
+	cache?: boolean;
 }
 

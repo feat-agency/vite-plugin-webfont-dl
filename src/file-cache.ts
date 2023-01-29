@@ -3,9 +3,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import cache, { Cache } from 'flat-cache';
+import { Options } from './types';
 
 export class FileCache {
+	private cacheID = 'vite-plugin-webfont-dl';
 	private store: Cache;
+	private enabled = true;
+
 	public count = {
 		css: 0,
 		font: 0,
@@ -15,10 +19,18 @@ export class FileCache {
 		font: 0,
 	};
 
-	constructor() {
-		this.store = cache.create('vite-plugin-webfont-dl');
+	constructor(options: Options) {
+		if (options.cache === false) {
+			this.enabled = false;
+		}
 
-		Object.keys(this.store.all()).forEach((key) => {
+		this.store = cache.create(this.cacheID);
+
+		if (!this.enabled) {
+			this.clear();
+		}
+
+		Object.keys(this.all()).forEach((key) => {
 			if (key.startsWith('css::')) {
 				this.count.css++;
 			} else if (key.startsWith('font::')) {
@@ -28,6 +40,10 @@ export class FileCache {
 	}
 
 	get(type: 'css' | 'font', url: string): Buffer | string | undefined {
+		if (!this.enabled) {
+			return;
+		}
+
 		const key = `${type}::${url}`;
 		const cachedFile = this.store.getKey(key);
 
@@ -47,6 +63,10 @@ export class FileCache {
 	}
 
 	save(type: 'css' | 'font', url: string, data: Buffer | string): void {
+		if (!this.enabled) {
+			return;
+		}
+
 		const key = `${type}::${url}`;
 
 		if (!this.store.getKey(key)) {
@@ -61,8 +81,12 @@ export class FileCache {
 		this.store.save(true);
 	}
 
+	all() {
+		return this.store.all();
+	}
+
 	clear() {
-		cache.clearAll();
+		cache.clearCacheById(this.cacheID);
 	}
 }
 

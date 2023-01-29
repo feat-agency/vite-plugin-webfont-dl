@@ -39,7 +39,7 @@ function viteWebfontDownload(
 
 	const fontUrlsDevMap: Map<string, string> = new Map();
 
-	const fileCache = new FileCache();
+	const fileCache = new FileCache(options);
 	const cssLoader = new CssLoader(options, fileCache);
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
