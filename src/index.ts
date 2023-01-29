@@ -123,7 +123,16 @@ function viteWebfontDownload(
 		}
 
 		if (!viteDevServer) {
-			logInfo(`${colors.green('✓')} [webfont-dl] ${allWebfontUrls.size} css downloaded. ${colors.gray(`[cache hit: ${fileCache.hits.css}/${fileCache.count.css}]`)}`);
+			logInfo(
+				colors.green('✓') + ' ' +
+				'[webfont-dl] ' +
+				allWebfontUrls.size.toString() + ' css downloaded. ' +
+				colors.gray(
+					options.cache !== false ?
+						`[cache hit: ${fileCache.hits.css}/${fileCache.count.css}]` :
+						'[cache disabled]'
+				)
+			);
 		}
 
 		return cssContent;
@@ -154,7 +163,16 @@ function viteWebfontDownload(
 			);
 		}
 
-		logInfo(`${colors.green('✓')} [webfont-dl] ${Object.values(fonts).length} fonts downloaded. ${colors.gray(`[cache hit: ${fileCache.hits.font}/${fileCache.count.font}]`)}`);
+		logInfo(
+			colors.green('✓') + ' ' +
+			'[webfont-dl] ' +
+			Object.keys(fonts).length.toString() + ' fonts downloaded. ' +
+			colors.gray(
+				options.cache !== false ?
+					`[cache hit: ${fileCache.hits.font}/${fileCache.count.font}]` :
+					'[cache disabled]'
+			)
+		);
 	};
 
 	const downloadFont = async (url: string): Promise<Buffer> => {
