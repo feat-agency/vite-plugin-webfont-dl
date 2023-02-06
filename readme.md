@@ -3,7 +3,7 @@
 [![NPM](https://img.shields.io/npm/v/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 [![NPM downloads](https://img.shields.io/npm/dt/vite-plugin-webfont-dl)](https://www.npmjs.com/package/vite-plugin-webfont-dl)
 
-**Collects webfont links, imports and definitions** from your Vite project, **downloads** css and font files, add the fonts to your **bundle** *(or serves through dev server)*, and **injects** font definitions using a **non-render blocking method**, meanwhile stores external css and font files in a **persistent file cache**.
+**Collects webfont links, imports and definitions** from your Vite project, **downloads** css and font files ***(privacy-first)***, add the fonts to your **bundle** *(or serves through dev server)*, and **injects** font definitions using a **non-render blocking method**, meanwhile stores external css and font files in a **persistent file cache**, making them available for **offline** development.
 
 ## 📦 Install
 ```bash
