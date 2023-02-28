@@ -62,7 +62,7 @@ export class CssParser {
 		const webfontUrlsCss = new Set<string>([]);
 		const matchedCssParts: string[] = [];
 
-		const importRegex = /@import\s+(?:url\()?['"]?([^\s'"]+)['"]?\)?;/g;
+		const importRegex = /@import\s*(?:url\()?['"]?([^\s'"]+)['"]?\)?;/g;
 		const fontFaceRegex = /@font-face\s*{[^}]*}/g;
 
 		const imports = [...cssContent.matchAll(importRegex)];

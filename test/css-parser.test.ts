@@ -10,4 +10,21 @@ describe('css parser', () => {
 
 		expect(Object.keys(fonts).length).eq(20); // 26 with duplicates
 	});
+
+	it('should find imports', () => {
+		const css = readFileSync(__dirname + '/fixtures/imports.css').toString();
+		const parsedBundleCss = (new CssParser()).parseBundleCss(css, '/', 'assets');
+
+		expect(Array.from(parsedBundleCss.webfontUrlsCss)).members([
+			'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=fallback',
+			'https://fonts.googleapis.com/css2?family=Inter:wght@500&display=fallback',
+			'https://fonts.googleapis.com/css2?family=Inter:wght@600&display=fallback',
+		]);
+
+		expect(Array.from(parsedBundleCss.matchedCssParts)).members([
+			'@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400&display=fallback\');',
+			'@import"https://fonts.googleapis.com/css2?family=Inter:wght@500&display=fallback";',
+			'@import \'https://fonts.googleapis.com/css2?family=Inter:wght@600&display=fallback\';',
+		]);
+	});
 });
