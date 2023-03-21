@@ -413,11 +413,13 @@ function viteWebfontDownload(
 					saveCss();
 				}
 
-				if (bundle[indexHtmlPath] !== undefined) {
-					indexHtmlContent = indexHtmlProcessor.removeTags(indexHtmlContent);
+				const asset = bundle[indexHtmlPath] as OutputAsset;
+
+				if (asset !== undefined) {
+					indexHtmlContent = indexHtmlProcessor.removeTags(asset.source as string);
 					indexHtmlContent = injectToHtml(indexHtmlContent, cssContent);
 
-					(bundle[indexHtmlPath] as OutputAsset).source = indexHtmlContent;
+					asset.source = indexHtmlContent;
 				}
 			} catch (error) {
 				console.error(colors.red(
