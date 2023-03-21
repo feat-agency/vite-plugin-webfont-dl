@@ -30,10 +30,31 @@ describe('css injector', () => {
 		};
 
 		const css = readFileSync(__dirname + '/fixtures/google-fonts.min.css').toString();
+
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const htmlExpected = htmlBefore.replace(
 			'</head>',
 			`  <style>${css}</style>\n  </head>`
+		);
+
+		const htmlAfter = (new CssInjector(options)).injectAsStyleTag(htmlBefore, css);
+
+		expect(htmlAfter).eq(htmlExpected);
+	});
+
+
+
+	it('should inject style tag minified into minified html', () => {
+		const options: Options = {
+			minifyCss: true,
+		};
+
+		const css = readFileSync(__dirname + '/fixtures/google-fonts.min.css').toString();
+
+		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts-min.html').toString();
+		const htmlExpected = htmlBefore.replace(
+			'</head>',
+			`<style>${css}</style></head>`
 		);
 
 		const htmlAfter = (new CssInjector(options)).injectAsStyleTag(htmlBefore, css);

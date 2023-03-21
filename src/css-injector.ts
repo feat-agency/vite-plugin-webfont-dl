@@ -15,8 +15,8 @@ export class CssInjector {
 	public injectAsStyleTag(html: string, cssContent: string): string {
 		if (this.options.minifyCss) {
 			return html.replace(
-				/([ \t]*)<\/head>/,
-				`$1$1<style>${cssContent}</style>\n$1</head>`
+				/(\n?)([ \t]*)<\/head>/,
+				`$1$2$2<style>${cssContent}</style>$1$2</head>`
 			);
 		}
 
