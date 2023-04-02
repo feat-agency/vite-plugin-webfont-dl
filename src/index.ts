@@ -315,6 +315,8 @@ function viteWebfontDownload(
 				res: ServerResponse,
 			) => {
 				void (async () => {
+					res.setHeader('Content-Type', 'text/css');
+
 					try {
 						await loadAndPrepareDevFonts();
 						res.end(cssContent);
