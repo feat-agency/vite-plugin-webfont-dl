@@ -193,6 +193,9 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
   Persistently store downloaded css and font files in local file cache.<br>
   If set to `false` the existing cache will be deleted.
 
+- **`proxy`** <small>(`false|AxiosProxyConfig`, default: `false`)</small>:<br>
+  [Proxy configuration](https://axios-http.com/docs/req_config) for network requests.
+
 *usage:*
 
 ```js
