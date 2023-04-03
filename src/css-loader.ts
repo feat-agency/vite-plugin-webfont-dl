@@ -1,8 +1,8 @@
 import { URL } from 'url';
-import axios from 'axios';
 import CleanCss from 'clean-css';
 import { Options } from './types';
 import { FileCache } from './file-cache';
+import { Downloader } from './downloader';
 import { Logger } from './logger';
 
 export class CssLoader {
@@ -11,6 +11,7 @@ export class CssLoader {
 	constructor(
 		private options: Options,
 		private logger: Logger,
+		private downloader: Downloader,
 		private fileCache: FileCache
 	) {}
 
@@ -56,15 +57,7 @@ export class CssLoader {
 			return cachedFile as string;
 		}
 
-		const userAgentWoff2 = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36';
-
-		const response = await axios.request({
-			method: 'get',
-			url: url,
-			headers: {
-				'User-Agent': userAgentWoff2,
-			},
-		});
+		const response = await this.downloader.download(url, 'text');
 
 		this.fileCache.save('css', url, response.data as string);
 

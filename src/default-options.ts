@@ -5,6 +5,7 @@ const defaultOptions: Options = {
 	minifyCss: true,
 	async: true,
 	cache: true,
+	proxy: false,
 };
 
 export const getOptionsWithDefaults = (options: Options = {}): Options => {

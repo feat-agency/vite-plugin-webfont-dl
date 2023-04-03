@@ -1,10 +1,11 @@
-import axios from 'axios';
+import { Downloader } from './downloader';
 import { FileCache } from './file-cache';
 import { Logger } from './logger';
 
 export class FontLoader {
 	constructor(
 		private logger: Logger,
+		private downloader: Downloader,
 		private fileCache: FileCache
 	) {}
 
@@ -17,11 +18,7 @@ export class FontLoader {
 			return cachedFile as Buffer;
 		}
 
-		const response = await axios.request({
-			method: 'get',
-			responseType: 'arraybuffer',
-			url: url,
-		});
+		const response = await this.downloader.download(url);
 
 		this.fileCache.save('font', url, response.data as Buffer);
 

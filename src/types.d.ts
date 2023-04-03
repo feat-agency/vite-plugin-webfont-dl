@@ -1,3 +1,5 @@
+import { AxiosProxyConfig } from 'axios';
+
 export interface Font {
 	url: string;
 	localPath: string;
@@ -46,5 +48,11 @@ export interface Options {
 	 * default: `true`
 	 * */
 	cache?: boolean;
+
+	/**
+	 * You can set proxy for network requests (using axios).
+	 * default: `false`
+	 */
+	proxy?: false | AxiosProxyConfig;
 }
 

@@ -7,6 +7,7 @@ import { CssLoader } from './css-loader';
 import { CssParser } from './css-parser';
 import { CssInjector } from './css-injector';
 import { CssTransformer } from './css-transformer';
+import { Downloader } from './downloader';
 import { FontLoader } from './font-loader';
 import { FileCache } from './file-cache';
 import { IndexHtmlProcessor } from './index-html-processor';
@@ -40,12 +41,13 @@ function viteWebfontDownload(
 	const fontUrlsDevMap: Map<string, string> = new Map();
 
 	const logger = new Logger();
+	const downloader = new Downloader(options, logger);
 	const fileCache = new FileCache(options);
-	const cssLoader = new CssLoader(options, logger, fileCache);
+	const cssLoader = new CssLoader(options, logger, downloader, fileCache);
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
 	const cssInjector = new CssInjector(options);
-	const fontLoader = new FontLoader(logger, fileCache);
+	const fontLoader = new FontLoader(logger, downloader, fileCache);
 	const indexHtmlProcessor = new IndexHtmlProcessor();
 
 	let viteDevServer: ViteDevServer;
