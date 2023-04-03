@@ -3,11 +3,16 @@ import axios from 'axios';
 import CleanCss from 'clean-css';
 import { Options } from './types';
 import { FileCache } from './file-cache';
+import { Logger } from './logger';
 
 export class CssLoader {
 	private isRelativeUrlRegex = /..?\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
 
-	constructor(private options: Options, private fileCache: FileCache) {}
+	constructor(
+		private options: Options,
+		private logger: Logger,
+		private fileCache: FileCache
+	) {}
 
 	public async loadAll(urls: Set<string>, isDevServer?: boolean): Promise<string> {
 		let cssContent = '';
@@ -43,6 +48,8 @@ export class CssLoader {
 	}
 
 	private async load(url: string) {
+		this.logger.flashLine(url);
+
 		const cachedFile = this.fileCache.get('css', url);
 
 		if (cachedFile) {

@@ -1,5 +1,4 @@
 import { ClientRequest, ServerResponse } from 'http';
-import { env, stdout } from 'process';
 import { NormalizedOutputOptions, OutputAsset, OutputBundle, PluginContext } from 'rollup';
 import type { Connect, IndexHtmlTransformContext, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import colors from 'picocolors';
@@ -9,8 +8,9 @@ import { CssParser } from './css-parser';
 import { CssInjector } from './css-injector';
 import { CssTransformer } from './css-transformer';
 import { FontLoader } from './font-loader';
-import { IndexHtmlProcessor } from './index-html-processor';
 import { FileCache } from './file-cache';
+import { IndexHtmlProcessor } from './index-html-processor';
+import { Logger } from './logger';
 import { getOptionsWithDefaults } from './default-options';
 import { AxiosError } from 'axios';
 
@@ -39,12 +39,13 @@ function viteWebfontDownload(
 
 	const fontUrlsDevMap: Map<string, string> = new Map();
 
+	const logger = new Logger();
 	const fileCache = new FileCache(options);
-	const cssLoader = new CssLoader(options, fileCache);
+	const cssLoader = new CssLoader(options, logger, fileCache);
 	const cssParser = new CssParser();
 	const cssTransformer = new CssTransformer();
 	const cssInjector = new CssInjector(options);
-	const fontLoader = new FontLoader(fileCache);
+	const fontLoader = new FontLoader(logger, fileCache);
 	const indexHtmlProcessor = new IndexHtmlProcessor();
 
 	let viteDevServer: ViteDevServer;
@@ -123,14 +124,13 @@ function viteWebfontDownload(
 		}
 
 		if (!viteDevServer) {
-			logInfo(
+			logger.info(
 				colors.green('✓') + ' ' +
-				'[webfont-dl] ' +
 				allWebfontUrls.size.toString() + ' css downloaded. ' +
-				colors.gray(
+				colors.dim(
 					options.cache !== false ?
-						`[cache hit: ${fileCache.hits.css}/${fileCache.count.css}]` :
-						'[cache disabled]'
+						`(cache hit: ${fileCache.hits.css}/${fileCache.count.css})` :
+						'(cache disabled)'
 				)
 			);
 		}
@@ -153,8 +153,6 @@ function viteWebfontDownload(
 		for (const fontFileName in fonts) {
 			const font = fonts[fontFileName];
 
-			writeLine(`[webfont-dl] ${colors.gray(font.url)}`);
-
 			const fontBinary = await fontLoader.load(font.url);
 
 			font.localPath = base + saveFile(
@@ -163,24 +161,21 @@ function viteWebfontDownload(
 			);
 		}
 
-		logInfo(
+		logger.info(
 			colors.green('✓') + ' ' +
-			'[webfont-dl] ' +
 			Object.keys(fonts).length.toString() + ' fonts downloaded. ' +
-			colors.gray(
+			colors.dim(
 				options.cache !== false ?
-					`[cache hit: ${fileCache.hits.font}/${fileCache.count.font}]` :
-					'[cache disabled]'
+					`(cache hit: ${fileCache.hits.font}/${fileCache.count.font})` :
+					'(cache disabled)'
 			)
 		);
 	};
 
 	const downloadFont = async (url: string): Promise<Buffer> => {
-		writeLine(`[webfont-dl] ${colors.gray(url)}`);
-
 		const font = fontLoader.load(url);
 
-		clearLine();
+		// logger.clearLine();
 
 		return font;
 	};
@@ -222,37 +217,6 @@ function viteWebfontDownload(
 		}
 
 		return cssInjector.injectAsStyleTag(html, cssContent as string);
-	};
-
-	const isTty = () => {
-		return stdout.isTTY && !env.CI;
-	};
-
-	const logInfo = (output: string) => {
-		clearLine();
-
-		resolvedConfig.logger.info(output);
-	};
-
-	const clearLine = () => {
-		if (isTty()) {
-			stdout.clearLine(0);
-			stdout.cursorTo(0);
-		}
-	};
-
-	const writeLine = (output: string) => {
-		if (isTty()) {
-			clearLine();
-
-			if (output.length < stdout.columns) {
-				stdout.write(output);
-			} else {
-				stdout.write(output.substring(0, stdout.columns - 1));
-			}
-		} else {
-			logInfo(output);
-		}
 	};
 
 
@@ -302,6 +266,8 @@ function viteWebfontDownload(
 			if (resolvedConfig.build.minify === false && _options?.minifyCss !== true) {
 				options.minifyCss = false;
 			}
+
+			logger.setResolvedLogger(resolvedConfig.logger);
 		},
 
 		configureServer(_viteDevServer: ViteDevServer) {
@@ -321,9 +287,8 @@ function viteWebfontDownload(
 						await loadAndPrepareDevFonts();
 						res.end(cssContent);
 					} catch (error) {
-						console.error(
-							colors.red('[webfont-dl]'),
-							(error as Error).message
+						logger.error(
+							colors.red((error as Error).message)
 						);
 
 						res.statusCode = 502;
@@ -424,15 +389,15 @@ function viteWebfontDownload(
 					asset.source = indexHtmlContent;
 				}
 			} catch (error) {
-				console.error(colors.red(
-					`[webfont-dl] ${(error as Error).message}`
-				));
+				logger.error(
+					colors.red((error as Error).message)
+				);
 
 				if (error instanceof AxiosError) {
 					if (error.request instanceof ClientRequest) {
-						console.error(colors.red(
-							`[webfont-dl] ${error.request.method} ${error.request.protocol}//${error.request.host}${error.request.path}`
-						));
+						logger.error(
+							colors.red(`${error.request.method} ${error.request.protocol}//${error.request.host}${error.request.path}`)
+						);
 					}
 				}
 			}

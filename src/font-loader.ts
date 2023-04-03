@@ -1,10 +1,16 @@
 import axios from 'axios';
 import { FileCache } from './file-cache';
+import { Logger } from './logger';
 
 export class FontLoader {
-	constructor(private fileCache: FileCache) {}
+	constructor(
+		private logger: Logger,
+		private fileCache: FileCache
+	) {}
 
 	async load(url: string): Promise<Buffer> {
+		this.logger.flashLine(url);
+
 		const cachedFile = this.fileCache.get('font', url);
 
 		if (cachedFile) {
