@@ -1,7 +1,7 @@
 import type { FontsCollection, ParsedBundleCss } from './types';
 
 export class CssParser {
-	private fontSrcRegex = /(?:https?:)?\/\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
+	private fontSrcRegex = /(?:https?:)?\/\/[-a-z0-9()@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
 	private googleFontsKitSrcRegex = /https:\/\/fonts\.gstatic\.com\/l\/font\?kit=[a-z0-9&=_-]+/gi;
 
 	private fontFilenameRegex = /[^/]+\.(?:woff2?|eot|ttf|otf|svg)/i;
