@@ -177,7 +177,7 @@ function viteWebfontDownload(
 	const downloadFont = async (url: string): Promise<Buffer> => {
 		const font = fontLoader.load(url);
 
-		// logger.clearLine();
+		logger.clearLine();
 
 		return font;
 	};
