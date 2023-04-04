@@ -16,7 +16,16 @@ export class Downloader {
 
 	public async download(url: string, responseType?: ResponseType, tries = 1): Promise<AxiosResponse> {
 		try {
-			return await this.toRequest(url, responseType);
+			const response = await this.toRequest(url, responseType);
+
+			if (tries > 1) {
+				this.logger.info(
+					colors.green(`✓ ${url}`) + ' ' +
+					colors.dim(`(try #${tries})`)
+				);
+			}
+
+			return response;
 		} catch (err) {
 			this.logger.error(
 				colors.red(`✗ ${url}`) + ' ' +
