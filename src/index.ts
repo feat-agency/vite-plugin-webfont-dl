@@ -115,6 +115,8 @@ function viteWebfontDownload(
 	};
 
 	const downloadWebfontCss = async (): Promise<string> => {
+		cssContent = '';
+
 		const allWebfontUrls = new Set([
 			...webfontUrls,
 			...webfontUrlsIndex,
