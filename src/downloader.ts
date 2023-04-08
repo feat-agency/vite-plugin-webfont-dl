@@ -1,4 +1,4 @@
-import axios, { AxiosResponse, ResponseType } from 'axios';
+import { Axios, AxiosResponse, ResponseType, isAxiosError } from 'axios';
 import { Agent as HttpAgent } from 'http';
 import { Agent as HttpsAgent } from 'https';
 import colors from 'picocolors';
@@ -10,21 +10,23 @@ export class Downloader {
 	private maxTries = 3;
 	private timeout = 2500;
 	private waitBeforeRetry = [25, 2500]; // range
-	private httpAgent: HttpAgent;
-	private httpsAgent: HttpsAgent;
+	private axios: Axios;
 
 	constructor(
 		private options: Options,
 		private logger: Logger
 	) {
-		this.httpAgent = new HttpAgent({
-			keepAlive: true,
-			family: 4,
-		});
-
-		this.httpsAgent = new HttpsAgent({
-			keepAlive: true,
-			family: 4,
+		this.axios = new Axios({
+			timeout: this.timeout,
+			proxy: this.options.proxy,
+			httpAgent: new HttpAgent({
+				keepAlive: true,
+				family: 4,
+			}),
+			httpsAgent: new HttpsAgent({
+				keepAlive: true,
+				family: 4,
+			}),
 		});
 	}
 
@@ -44,7 +46,7 @@ export class Downloader {
 			this.logger.error(
 				colors.red(`✗ ${url}`) + ' ' +
 				colors.dim(`(try #${tries})`) + ': ' +
-				((axios.isAxiosError(err) ? err.message : err) as string)
+				((isAxiosError(err) ? err.message : err) as string)
 			);
 
 			if (tries < this.maxTries) {
@@ -58,17 +60,11 @@ export class Downloader {
 	}
 
 	private toRequest(url: string, responseType?: ResponseType) {
-		return axios.request({
-			method: 'get',
-			url: url,
+		return this.axios.get(url, {
 			headers: {
 				'User-Agent': this.userAgentWoff2,
 			},
 			responseType: responseType || 'arraybuffer',
-			proxy: this.options.proxy,
-			timeout: this.timeout,
-			httpAgent: this.httpAgent,
-			httpsAgent: this.httpsAgent,
 		});
 	}
 
