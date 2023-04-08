@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
+import { resolve } from 'path';
 import cache, { Cache } from 'flat-cache';
 import { Options } from './types';
 
@@ -24,7 +25,10 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.store = cache.create(this.cacheID);
+		this.store = cache.create(
+			this.cacheID,
+			resolve(__dirname, '../.cache/')
+		);
 
 		if (!this.enabled) {
 			this.clear();
@@ -58,7 +62,7 @@ export class FileCache {
 				return Buffer.from(cachedFile.data);
 			}
 
-			return cachedFile.data as string;
+			return cachedFile as string;
 		}
 	}
 
