@@ -13,14 +13,14 @@ export class Logger {
 		return stdout.isTTY && !env.CI;
 	}
 
-	public info(output: string) {
+	public info(output: string, withPrefix = true) {
 		this.clearLine();
-		this.resolvedLogger?.info(this.prefix() + output);
+		this.resolvedLogger?.info((withPrefix ? this.prefix() : '') + output);
 	}
 
-	public error(output: string) {
+	public error(output: string, withPrefix = true) {
 		this.clearLine();
-		this.resolvedLogger?.error(this.prefix() + output);
+		this.resolvedLogger?.error((withPrefix ? this.prefix() : '') + output);
 	}
 
 	public clearLine() {
@@ -30,11 +30,11 @@ export class Logger {
 		}
 	}
 
-	public flashLine(output: string) {
+	public flashLine(output: string, withPrefix = true) {
 		if (this.isTty()) {
 			this.clearLine();
 
-			output = this.prefix() + output;
+			output = (withPrefix ? this.prefix() : '') + output;
 
 			if (output.length < stdout.columns) {
 				stdout.write(output);
@@ -42,7 +42,7 @@ export class Logger {
 				stdout.write(output.substring(0, stdout.columns - 1));
 			}
 		} else {
-			this.info(output);
+			this.info(output, withPrefix);
 		}
 	}
 

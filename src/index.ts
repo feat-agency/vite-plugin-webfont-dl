@@ -117,6 +117,8 @@ function viteWebfontDownload(
 	const downloadWebfontCss = async (): Promise<string> => {
 		cssContent = '';
 
+		const started = Date.now();
+
 		const allWebfontUrls = new Set([
 			...webfontUrls,
 			...webfontUrlsIndex,
@@ -130,12 +132,15 @@ function viteWebfontDownload(
 		if (!viteDevServer) {
 			logger.info(
 				colors.green('✓') + ' ' +
-				allWebfontUrls.size.toString() + ' css downloaded. ' +
-				colors.dim(
-					options.cache !== false ?
-						`(cache hit: ${fileCache.hits.css}/${fileCache.count.css})` :
-						'(cache disabled)'
-				)
+				allWebfontUrls.size.toString() + ' webfont css downloaded. ' +
+				colors.dim('(' +
+					colors.bold(toDuration(started)) + ', ' +
+					(options.cache !== false ?
+						`cache hit: ${colors.bold(toPercent(fileCache.hits.css, allWebfontUrls.size))}` :
+						'cache disabled'
+					) +
+				')'),
+				false
 			);
 		}
 
@@ -154,6 +159,8 @@ function viteWebfontDownload(
 	};
 
 	const downloadFonts = async (): Promise<void> => {
+		const started = Date.now();
+
 		for (const fontFileName in fonts) {
 			const font = fonts[fontFileName];
 
@@ -167,12 +174,15 @@ function viteWebfontDownload(
 
 		logger.info(
 			colors.green('✓') + ' ' +
-			Object.keys(fonts).length.toString() + ' fonts downloaded. ' +
-			colors.dim(
-				options.cache !== false ?
-					`(cache hit: ${fileCache.hits.font}/${fileCache.count.font})` :
-					'(cache disabled)'
-			)
+			Object.keys(fonts).length.toString() + ' webfonts downloaded. ' +
+			colors.dim('(' +
+				colors.bold(toDuration(started)) + ', ' +
+				(options.cache !== false ?
+					`cache hit: ${colors.bold(toPercent(fileCache.hits.font, Object.keys(fonts).length))}` :
+					'cache disabled'
+				) +
+			')'),
+			false
 		);
 	};
 
@@ -221,6 +231,14 @@ function viteWebfontDownload(
 		}
 
 		return cssInjector.injectAsStyleTag(html, cssContent as string);
+	};
+
+	const toDuration = (started: number): string => {
+		return (Date.now() - started).toLocaleString() + ' ms';
+	};
+
+	const toPercent = (value: number, total: number): string => {
+		return (Math.round(value / total * 100 * 100) / 100).toFixed(2) + '%';
 	};
 
 
