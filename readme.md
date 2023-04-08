@@ -5,18 +5,40 @@
 
 **Collects webfont links, imports and definitions** from your Vite project, **downloads** css and font files ***(privacy-first)***, add the fonts to your **bundle** *(or serves through dev server)*, and **injects** font definitions using a **non-render blocking method**, meanwhile stores external css and font files in a **persistent file cache**, making them available for **offline** development.
 
-## 📦 Install
+<br>
+
+## 📦 Install <span name="install"></span>
 ```bash
 npm i vite-plugin-webfont-dl -D
 ```
 
 <br>
 
-## 😎 Usage: **Zero config** <sub><sup>[method 🅰️]</sub></sup> <a name="zero-config"></a>
+## 📖 Table of Contents
+1. 📦 [Install](#install)
+1. Usage:
+	* 😎 [Zero config <sub><sup>[method A]</sub></sup>](#zero-config)
+	* 🦄 [Simple config <sub><sup>[method B]</sub></sup>](#simple-config)
+1. 🚀 [That's all!](#thats-all)
+	* 🔌 [Laravel](#laravel)
+	* 📸 [Screenshot](#screenshot)
+1. 🧩 [Supported webfont providers](#supported-webfont-providers)
+1. 🛠️ [Options](#options)
+1. ❓ [Third-party webfonts](#third-party-webfonts)
+1. 🔮 [How it works](#how-it-works)
+	* 📉 [Google Fonts](#google-fonts)
+	* 📈 [Webfont-DL Vite plugin](#webfont-dl-vite-plugin)
+1. 📊 [Benchmark](#benchmark)
+1. 📚 [Resources](#resources)
+1. 📄 [License](#license)
+
+<br>
+
+## 😎 Usage: **Zero config** <sub><sup>[method A]</sub></sup> <span name="zero-config"></span>
 
 *Extracts, downloads and injects fonts from the **original Google Fonts code snippet**.*
 
-0. Select your font families in your [webfont provider](#-supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the code into `<head>` from the ***"Use on the web"*** block:
+0. Select your font families in your [webfont provider](#supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the code into `<head>` from the ***"Use on the web"*** block:
 	```html
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,11 +63,11 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 🦄 Usage: **Simple config** <sub><sup>[method 🅱️]</sub></sup> <a name="simple-config"></a>
+## 🦄 Usage: **Simple config** <sub><sup>[method B]</sub></sup> <span name="simple-config"></span>
 
 *Extracts, downloads and injects fonts from the **configured webfont CSS URL(s)**.*
 
-0. Select your font families in your [webfont provider](#-supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the **CSS URL**(s) from the ***"Use on the web"*** code block:
+0. Select your font families in your [webfont provider](#supported-webfont-providers) *(e.g. [Google Fonts](https://fonts.google.com))* and copy the **CSS URL**(s) from the ***"Use on the web"*** code block:
 	```html
 	<link href="[CSS URL]" rel="stylesheet">
 	```
@@ -67,7 +89,7 @@ npm i vite-plugin-webfont-dl -D
 
 <br>
 
-## 🚀 That's all!
+## 🚀 That's all! <span name="thats-all"></span>
 The webfonts are **injected and ready to use**.<br>
 The plugin does its job seamlessly whether you are working on local development server or building to production.
 
@@ -81,18 +103,18 @@ h2 {
 }
 ```
 
-### Laravel
+### 🔌 Laravel <span name="laravel"></span>
 To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add this line to your blade file:
 ```blade
 @vite('webfonts.css')
 ```
 
-### Screenshot
+### 📸 Screenshot <span name="screenshot"></span>
 <img src="./img/terminal.png" width="400" />
 
 <br>
 
-### 🧩 Supported webfont providers
+### 🧩 Supported webfont providers <span name="supported-webfont-providers"></span>
 - **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Fontshare](https://www.fontshare.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
@@ -100,7 +122,59 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 
 <br>
 
-### ❓ Third-party webfonts
+### 🛠️ **Options** <span name="options"></span>
+- **`injectAsStyleTag`** <small>(`boolean`, default: `true`)</small>:<br>
+  Inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
+
+- **`minifyCss`** <small>(`boolean`, default: *value of* `build.minify`)</small>:<br>
+  Minify CSS code during build.
+
+- **`async`** <small>(`boolean`, default: `true`)</small>:<br>
+  Prevent the usage of inline event handlers (`webfonts.css`) that can cause Content Security Policy issues.<br>
+  Works only with **`injectAsStyleTag:false`**.
+
+- **`cache`** <small>(`boolean`, default: `true`)</small>:<br>
+  Persistently store downloaded css and font files in local file cache.<br>
+  If set to `false` the existing cache will be deleted.
+
+- **`proxy`** <small>(`false|AxiosProxyConfig`, default: `false`)</small>:<br>
+  [Proxy configuration](https://axios-http.com/docs/req_config) for network requests.
+
+*usage:*
+
+```js
+ViteWebfontDownload(
+  [],
+  {
+    injectAsStyleTag: true,
+    minifyCss: true,
+    async: true,
+    cache: true,
+	proxy: false,
+  }
+)
+```
+
+*or:*
+
+```js
+ViteWebfontDownload(
+  [
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
+  ],
+  {
+    injectAsStyleTag: true,
+    minifyCss: true,
+    async: true,
+    cache: true,
+	proxy: false,
+  }
+)
+```
+
+<br>
+
+### ❓ Third-party webfonts <span name="third-party-webfonts"></span>
 
 ⚠️ Using the standard method to add third-party webfonts ([Google Fonts](https://fonts.google.com), [Bunny Fonts](https://bunny.net/fonts/) or [Fontshare](https://www.fontshare.com)) to a webpage can **slow down page load significantly.** **Lighthouse** and **PageSpeed Insights** calls them ***"render-blocking resource"***, which means the page can't render fully until the webfonts CSS hasn't been fetched from the remote server.
 
@@ -112,9 +186,9 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 
 <br>
 
-## 🔮 How it works
+## 🔮 How it works <span name="how-it-works"></span>
 
-### **Google Fonts** 📉
+### 📉 **Google Fonts** <span name="google-fonts"></span>
 
 **Google Fonts** generates the following code which you have to inject into your website's `<head>`, *example*:
 
@@ -134,7 +208,7 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 
 ### 🆚
 
-### **Webfont-DL** Vite plugin 📈
+### 📈 **Webfont-DL** Vite plugin <span name="webfont-dl-vite-plugin"></span>
 
 On the contrary, **Webfont-DL plugin** does most of the job at build time, leaves the minimum to the browser.
 
@@ -176,59 +250,10 @@ On the contrary, **Webfont-DL plugin** does most of the job at build time, leave
 1. First line instructs the browser to prefetch a CSS file for later use as stylesheet. [**`preload`**]
 1. Second line instructs the browser to load and use that CSS file as a "`print`" stylesheet *(non-render blocking)*. After loading it promote to "`all`" media type stylesheet (by removing the "`media`" attribute). [**`stylesheet`**]
 
-<br>
-
-### 🛠️ **Options**
-- **`injectAsStyleTag`** <small>(`boolean`, default: `true`)</small>:<br>
-  Inject webfonts as `<style>` tag (embedded CSS) or as an external `.css` file
-
-- **`minifyCss`** <small>(`boolean`, default: *value of* `build.minify`)</small>:<br>
-  Minify CSS code during build.
-
-- **`async`** <small>(`boolean`, default: `true`)</small>:<br>
-  Prevent the usage of inline event handlers (`webfonts.css`) that can cause Content Security Policy issues.<br>
-  Works only with **`injectAsStyleTag:false`**.
-
-- **`cache`** <small>(`boolean`, default: `true`)</small>:<br>
-  Persistently store downloaded css and font files in local file cache.<br>
-  If set to `false` the existing cache will be deleted.
-
-- **`proxy`** <small>(`false|AxiosProxyConfig`, default: `false`)</small>:<br>
-  [Proxy configuration](https://axios-http.com/docs/req_config) for network requests.
-
-*usage:*
-
-```js
-ViteWebfontDownload(
-  [],
-  {
-    injectAsStyleTag: true,
-    minifyCss: true,
-    async: true,
-    cache: true
-  }
-)
-```
-
-*or:*
-
-```js
-ViteWebfontDownload(
-  [
-    'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap'
-  ],
-  {
-    injectAsStyleTag: true,
-    minifyCss: true,
-    async: true,
-    cache: true
-  }
-)
-```
 
 <br>
 
-## 📈 Benchmark
+## 📊 Benchmark <span name="benchmark"></span>
 [Starter Vite project](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-vanilla) with
 
 | [▶️ Standard **Google Fonts**](https://web.dev/measure/?url=https%3A%2F%2Fwebfont.feat.agency%2F) | 🆚 | [▶️ **Webfont DL** Vite plugin](https://web.dev/measure/?url=https%3A%2F%2Fwebfont-dl.feat.agency%2F) |
@@ -239,12 +264,12 @@ ViteWebfontDownload(
 
 <br>
 
-## 📚 Resources
+## 📚 Resources <span name="resources"></span>
 * [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
 
 <br>
 
-## 📄 License
+## 📄 License <span name="license"></span>
 
 MIT License © 2022 [feat.](https://feat.agency)
 
