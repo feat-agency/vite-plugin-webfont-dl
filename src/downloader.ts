@@ -1,4 +1,6 @@
 import axios, { AxiosResponse, ResponseType } from 'axios';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 import colors from 'picocolors';
 import { Logger } from './logger';
 import { Options } from './types';
@@ -8,11 +10,23 @@ export class Downloader {
 	private maxTries = 3;
 	private timeout = 2500;
 	private waitBeforeRetry = [25, 2500]; // range
+	private httpAgent: HttpAgent;
+	private httpsAgent: HttpsAgent;
 
 	constructor(
 		private options: Options,
 		private logger: Logger
-	) {}
+	) {
+		this.httpAgent = new HttpAgent({
+			keepAlive: true,
+			family: 4,
+		});
+
+		this.httpsAgent = new HttpsAgent({
+			keepAlive: true,
+			family: 4,
+		});
+	}
 
 	public async download(url: string, responseType?: ResponseType, tries = 1): Promise<AxiosResponse> {
 		try {
@@ -53,6 +67,8 @@ export class Downloader {
 			responseType: responseType || 'arraybuffer',
 			proxy: this.options.proxy,
 			timeout: this.timeout,
+			httpAgent: this.httpAgent,
+			httpsAgent: this.httpsAgent,
 		});
 	}
 
