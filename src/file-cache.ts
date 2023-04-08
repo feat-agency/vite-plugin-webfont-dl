@@ -7,14 +7,11 @@ import cache, { Cache } from 'flat-cache';
 import { Options } from './types';
 
 export class FileCache {
-	private cacheID = 'vite-plugin-webfont-dl';
-	private store: Cache;
 	private enabled = true;
+	private cacheDir = resolve(__dirname, '../.cache/');
+	private storeCss: Cache;
+	private storeFont: Cache;
 
-	public count = {
-		css: 0,
-		font: 0,
-	};
 	public hits = {
 		css: 0,
 		font: 0,
@@ -25,22 +22,12 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.store = cache.create(
-			this.cacheID,
-			resolve(__dirname, '../.cache/')
-		);
+		this.storeCss = cache.create('css', this.cacheDir);
+		this.storeFont = cache.create('font', this.cacheDir);
 
 		if (!this.enabled) {
 			this.clear();
 		}
-
-		Object.keys(this.all()).forEach((key) => {
-			if (key.startsWith('css::')) {
-				this.count.css++;
-			} else if (key.startsWith('font::')) {
-				this.count.font++;
-			}
-		});
 	}
 
 	get(type: 'css' | 'font', url: string): Buffer | string | undefined {
@@ -48,8 +35,9 @@ export class FileCache {
 			return;
 		}
 
-		const key = `${type}::${url}`;
-		const cachedFile = this.store.getKey(key);
+		const cachedFile = type === 'css' ?
+			this.storeCss.getKey(url) :
+			this.storeFont.getKey(url);
 
 		if (cachedFile) {
 			if (type === 'css') {
@@ -71,26 +59,17 @@ export class FileCache {
 			return;
 		}
 
-		const key = `${type}::${url}`;
-
-		if (!this.store.getKey(key)) {
-			if (type === 'css') {
-				this.count.css++;
-			} else {
-				this.count.font++;
-			}
+		if (type === 'css') {
+			this.storeCss.setKey(url, data);
+			this.storeCss.save(true);
+		} else {
+			this.storeFont.setKey(url, data);
+			this.storeFont.save(true);
 		}
-
-		this.store.setKey(key, data);
-		this.store.save(true);
-	}
-
-	all() {
-		return this.store.all();
 	}
 
 	clear() {
-		cache.clearCacheById(this.cacheID);
+		cache.clearAll(this.cacheDir);
 	}
 }
 
