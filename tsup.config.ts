@@ -5,9 +5,4 @@ export default defineConfig({
 	format: ['cjs', 'esm'],
 	dts: true,
 	clean: true,
-	esbuildOptions(options) {
-		options.logOverride = {
-			'empty-import-meta': 'silent',
-		};
-	},
 });

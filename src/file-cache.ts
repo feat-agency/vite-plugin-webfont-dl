@@ -2,14 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
 import cache, { Cache } from 'flat-cache';
 import { Options } from './types';
 
 export class FileCache {
 	private enabled = true;
-	private cacheDir?: string;
 	private storeCss: Cache;
 	private storeFont: Cache;
 
@@ -23,15 +20,8 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		if (import.meta.url) {
-			const __filename = fileURLToPath(import.meta.url);
-			const __dirname = dirname(__filename);
-
-			this.cacheDir = resolve(__dirname, '../.cache/');
-		}
-
-		this.storeCss = cache.create('css', this.cacheDir);
-		this.storeFont = cache.create('font', this.cacheDir);
+		this.storeCss = cache.create('vite-plugin-webfont-dl__css');
+		this.storeFont = cache.create('vite-plugin-webfont-dl__font');
 
 		if (!this.enabled) {
 			this.clear();
@@ -77,7 +67,8 @@ export class FileCache {
 	}
 
 	clear() {
-		cache.clearAll(this.cacheDir);
+		cache.clearCacheById('vite-plugin-webfont-dl__css');
+		cache.clearCacheById('vite-plugin-webfont-dl__font');
 	}
 }
 
