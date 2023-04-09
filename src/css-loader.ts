@@ -6,7 +6,8 @@ import { Downloader } from './downloader';
 import { Logger } from './logger';
 
 export class CssLoader {
-	private isRelativeUrlRegex = /..?\/.+?\.(?:woff2?|eot|ttf|otf|svg)/gi;
+	private isRelativeUrlRegex = /\.\.?\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
+	private protocolRelativeUrlRegex = /(?<!https?:)\/\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
 
 	constructor(
 		private options: Options,
@@ -41,11 +42,17 @@ export class CssLoader {
 	}
 
 	public normalizeUrls(cssContent: string, cssUrl: string) {
-		return cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
+		cssContent = cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
 			const urlObject = new URL(match, cssUrl);
 
 			return urlObject.href;
 		});
+
+		cssContent = cssContent.replaceAll(this.protocolRelativeUrlRegex, (match) => {
+			return 'https:' + match;
+		});
+
+		return cssContent;
 	}
 
 	private async load(url: string) {
