@@ -2,13 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import cache, { Cache } from 'flat-cache';
 import { Options } from './types';
 
 export class FileCache {
 	private enabled = true;
-	private cacheDir = resolve(__dirname, '../.cache/');
+	private cacheDir?: string;
 	private storeCss: Cache;
 	private storeFont: Cache;
 
@@ -20,6 +21,13 @@ export class FileCache {
 	constructor(options: Options) {
 		if (options.cache === false) {
 			this.enabled = false;
+		}
+
+		if (import.meta.url) {
+			const __filename = fileURLToPath(import.meta.url);
+			const __dirname = dirname(__filename);
+
+			this.cacheDir = resolve(__dirname, '../.cache/');
 		}
 
 		this.storeCss = cache.create('css', this.cacheDir);

@@ -18,7 +18,8 @@
 	"include": [
 		"src",
 		"test",
-		"vite.config.ts"
+		"vite.config.ts",
+		"tsup.config.ts"
 	],
 	"exclude": [
 		"dist"

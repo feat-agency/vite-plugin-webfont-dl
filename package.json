@@ -1,7 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.7.1",
-	"type": "module",
+	"version": "3.7.2-beta.0",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -16,24 +15,24 @@
 		"vue",
 		"react"
 	],
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"require": "./dist/index.cjs",
-			"import": "./dist/index.js"
+			"require": "./dist/index.js",
+			"import": "./dist/index.mjs",
+			"types": "./dist/index.d.ts"
 		}
 	},
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
 	"files": [
 		"dist/index.js",
-		"dist/index.cjs",
+		"dist/index.mjs",
 		"dist/index.d.ts"
 	],
 	"scripts": {
 		"start": "npm run build -- --watch",
-		"build": "tsup src/index.ts --dts --format cjs,esm --clean",
+		"build": "tsup src/index.ts",
 		"lint": "tsc --noEmit --downlevelIteration && eslint \"src/**/*.ts\" --no-fix",
 		"lint:fix": "eslint \"src/**/*.ts\" --fix",
 		"test": "vitest"
