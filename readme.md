@@ -150,7 +150,7 @@ ViteWebfontDownload(
     minifyCss: true,
     async: true,
     cache: true,
-	proxy: false,
+    proxy: false,
   }
 )
 ```
@@ -167,7 +167,7 @@ ViteWebfontDownload(
     minifyCss: true,
     async: true,
     cache: true,
-	proxy: false,
+    proxy: false,
   }
 )
 ```
