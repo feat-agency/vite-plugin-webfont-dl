@@ -127,21 +127,21 @@ function viteWebfontDownload(
 
 		if (allWebfontUrls.size) {
 			cssContent += await cssLoader.loadAll(allWebfontUrls, !!viteDevServer);
+		}
 
-			if (!viteDevServer) {
-				logger.info(
-					colors.green('✓') + ' ' +
-					allWebfontUrls.size.toString() + ' webfont css downloaded. ' +
-					colors.dim('(' +
-						colors.bold(toDuration(started)) + ', ' +
-						(options.cache !== false ?
-							`cache hit: ${colors.bold(toPercent(fileCache.hits.css, allWebfontUrls.size))}` :
-							'cache disabled'
-						) +
-					')'),
-					false
-				);
-			}
+		if (!viteDevServer) {
+			logger.info(
+				colors.green('✓') + ' ' +
+				allWebfontUrls.size.toString() + ' webfont css downloaded. ' +
+				colors.dim('(' +
+					colors.bold(toDuration(started)) + ', ' +
+					(options.cache !== false ?
+						`cache hit: ${colors.bold(toPercent(fileCache.hits.css, allWebfontUrls.size))}` :
+						'cache disabled'
+					) +
+				')'),
+				false
+			);
 		}
 
 		return cssContent;
@@ -172,20 +172,18 @@ function viteWebfontDownload(
 			);
 		}
 
-		if (Object.keys(fonts).length) {
-			logger.info(
-				colors.green('✓') + ' ' +
-				Object.keys(fonts).length.toString() + ' webfonts downloaded. ' +
-				colors.dim('(' +
-					colors.bold(toDuration(started)) + ', ' +
-					(options.cache !== false ?
-						`cache hit: ${colors.bold(toPercent(fileCache.hits.font, Object.keys(fonts).length))}` :
-						'cache disabled'
-					) +
-				')'),
-				false
-			);
-		}
+		logger.info(
+			colors.green('✓') + ' ' +
+			Object.keys(fonts).length.toString() + ' webfonts downloaded. ' +
+			colors.dim('(' +
+				colors.bold(toDuration(started)) + ', ' +
+				(options.cache !== false ?
+					`cache hit: ${colors.bold(toPercent(fileCache.hits.font, Object.keys(fonts).length))}` :
+					'cache disabled'
+				) +
+			')'),
+			false
+		);
 	};
 
 	const downloadFont = async (url: string): Promise<Buffer> => {

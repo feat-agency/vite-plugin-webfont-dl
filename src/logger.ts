@@ -4,6 +4,7 @@ import colors from 'picocolors';
 
 export class Logger {
 	private resolvedLogger?: ViteLogger;
+	private flashTimeout?: ReturnType<typeof setTimeout>;
 
 	public setResolvedLogger(resolvedLogger: ViteLogger) {
 		this.resolvedLogger = resolvedLogger;
@@ -41,6 +42,14 @@ export class Logger {
 			} else {
 				stdout.write(output.substring(0, stdout.columns - 1));
 			}
+
+			if (this.flashTimeout) {
+				clearTimeout(this.flashTimeout);
+			}
+
+			this.flashTimeout = setTimeout(() => {
+				this.clearLine();
+			}, 500);
 		} else {
 			this.info(output, withPrefix);
 		}
