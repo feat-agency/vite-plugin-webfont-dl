@@ -30,7 +30,7 @@ function viteWebfontDownload(
 	}
 
 	const webfontUrls = new Set<string>(_webfontUrls || []);
-	const webfontUrlsIndex = new Set<string>([]);
+	const webfontUrlsHtml = new Set<string>([]);
 	const webfontUrlsCss = new Set<string>([]);
 	const options: Options = getOptionsWithDefaults(_options);
 
@@ -57,19 +57,23 @@ function viteWebfontDownload(
 	let base: string;
 	let assetsDir: string;
 
-	let indexHtmlContent: string;
-	let indexHtmlPath: string;
-
 	let cssContent = '';
 	let cssPath: string;
 
+	const htmlFiles: Map<string, string> = new Map<string, string>();
 
-	const collectWebfontsFromIndexHtml = (indexHtml: string): void => {
-		webfontUrlsIndex.clear();
-
-		for (const webfontUrl of indexHtmlProcessor.parse(indexHtml)) {
-			webfontUrlsIndex.add(webfontUrl);
+	const collectWebfontsFromHtml = (html: string): void => {
+		for (const webfontUrl of indexHtmlProcessor.parse(html)) {
+			webfontUrlsHtml.add(webfontUrl);
 		}
+	};
+
+	const collectWebfontsFromHtmlFiles = (): void => {
+		webfontUrlsHtml.clear();
+
+		htmlFiles.forEach((html) => {
+			collectWebfontsFromHtml(html);
+		});
 	};
 
 	const collectWebfontsFromBundleCss = (bundle: OutputBundle): void => {
@@ -121,7 +125,7 @@ function viteWebfontDownload(
 
 		const allWebfontUrls = new Set([
 			...webfontUrls,
-			...webfontUrlsIndex,
+			...webfontUrlsHtml,
 			...webfontUrlsCss,
 		]);
 
@@ -246,9 +250,9 @@ function viteWebfontDownload(
 	/**
 	 * A, Build:
 	 *    1. [hook] configResolved
-	 *    2. [hook] transformIndexHtml (set indexHtmlPath)
+	 *    2. [hook] transformIndexHtml (sets htmlFiles)
 	 *    3. [hook] generateBundle
-	 *    4.   ↳ collectWebfontsFromIndexHtml()
+	 *    4.   ↳ collectWebfontsFromHtmlFiles()
 	 *    5.   ↳ collectWebfontsFromBundleCss()
 	 *    6.   ↳ downloadWebfontCss()
 	 *    7.   ↳ parseFonts()
@@ -262,7 +266,7 @@ function viteWebfontDownload(
 	 *    1. [hook] configResolved
 	 *    2. [hook] configureServer: middleware init
 	 *    4. [hook] transformIndexHtml
-	 *    5.   ↳ collectWebfontsFromIndexHtml()
+	 *    5.   ↳ collectWebfontsFromHtmlFiles()
 	 *    6.   ↳ removeTags()
 	 *    7.   ↳ injectToHtml()
 	 *    8. [middleware]
@@ -371,11 +375,15 @@ function viteWebfontDownload(
 		},
 
 		transformIndexHtml(html: string, ctx: IndexHtmlTransformContext) {
-			indexHtmlContent = html;
-			indexHtmlPath = ctx.path.replace(/^\//, '');
+			htmlFiles.set(
+				ctx.path.replace(/^\//, ''),
+				html,
+			);
 
 			if (viteDevServer) {
-				collectWebfontsFromIndexHtml(html);
+				webfontUrlsHtml.clear();
+				collectWebfontsFromHtml(html);
+
 				html = indexHtmlProcessor.removeTags(html);
 				html = injectToHtml(html);
 			}
@@ -387,10 +395,7 @@ function viteWebfontDownload(
 			// eslint-disable-next-line @typescript-eslint/no-this-alias
 			pluginContext = this;
 
-			if (indexHtmlContent !== undefined) {
-				collectWebfontsFromIndexHtml(indexHtmlContent);
-			}
-
+			collectWebfontsFromHtmlFiles();
 			collectWebfontsFromBundleCss(bundle);
 
 			try {
@@ -398,18 +403,20 @@ function viteWebfontDownload(
 				await downloadFonts();
 				replaceFontUrls();
 
-				if (options.injectAsStyleTag === false || indexHtmlContent === undefined) {
+				if (options.injectAsStyleTag === false || !htmlFiles.size) {
 					saveCss();
 				}
 
-				const asset = bundle[indexHtmlPath] as OutputAsset;
+				htmlFiles.forEach((html, htmlPath) => {
+					const asset = bundle[htmlPath] as OutputAsset;
 
-				if (asset !== undefined) {
-					indexHtmlContent = indexHtmlProcessor.removeTags(asset.source as string);
-					indexHtmlContent = injectToHtml(indexHtmlContent, cssContent);
+					if (asset !== undefined) {
+						asset.source = indexHtmlProcessor.removeTags(asset.source as string);
+						asset.source = injectToHtml(asset.source, cssContent);
 
-					asset.source = indexHtmlContent;
-				}
+						htmlFiles.set(htmlPath, asset.source);
+					}
+				});
 			} catch (error) {
 				logger.error(
 					colors.red((error as Error).message)
