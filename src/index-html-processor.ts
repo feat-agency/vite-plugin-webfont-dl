@@ -14,6 +14,14 @@ export class IndexHtmlProcessor {
 		// https://api.fontshare.com
 		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/g,
 		/<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+
+		// https://cdn.jsdelivr.net
+		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]*>/g,
+		/<link[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+
+		// https://rsms.me
+		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]*>/g,
+		/<link[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 	];
 
 	private preconnectRegexes = [
@@ -37,6 +45,10 @@ export class IndexHtmlProcessor {
 		// https://api.fontshare.com
 		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]*>/,
 		/<link[^>]+href=['"]?https:\/\/api\.fontshare\.com['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
+
+		// https://rsms.me
+		/<link[^>]+rel=['"]?preconnect['"]?[^>]+href=['"]?https:\/\/rsms\.me['"]?[^>]*>/,
+		/<link[^>]+href=['"]?https:\/\/rsms\.me['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
 	];
 
 	parse(html: string): Set<string> {

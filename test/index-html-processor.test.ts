@@ -34,6 +34,26 @@ describe('index.html processor', () => {
 
 
 
+	it('should find jsDelivr', () => {
+		const html = readFileSync(__dirname + '/fixtures/index-jsdelivr.html').toString();
+		const fonts = (new IndexHtmlProcessor()).parse(html);
+
+		expect(fonts.size).eq(1);
+		expect(fonts.has('https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css')).toBeTruthy();
+	});
+
+
+
+	it('should find rsms.me', () => {
+		const html = readFileSync(__dirname + '/fixtures/index-rsms.html').toString();
+		const fonts = (new IndexHtmlProcessor()).parse(html);
+
+		expect(fonts.size).eq(1);
+		expect(fonts.has('https://rsms.me/inter/inter.css')).toBeTruthy();
+	});
+
+
+
 	it('should not find any fonts', () => {
 		const html = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const fonts = (new IndexHtmlProcessor()).parse(html);
@@ -85,6 +105,34 @@ describe('index.html processor', () => {
 
 		const preconnectTag = '<link rel="preconnect" href="https://api.fontshare.com">';
 		const stylesheetTag = '<link href="https://api.fontshare.com/v2/css?f[]=general-sans@200,300&f[]=cabinet-grotesk@200&display=swap" rel="stylesheet">';
+
+		expect(htmlBefore).contains(preconnectTag);
+		expect(htmlAfter).not.contains(preconnectTag);
+
+		expect(htmlBefore).contains(stylesheetTag);
+		expect(htmlAfter).not.contains(stylesheetTag);
+	});
+
+
+
+	it('should remove jsDelivr tags', () => {
+		const htmlBefore = readFileSync(__dirname + '/fixtures/index-jsdelivr.html').toString();
+		const htmlAfter = (new IndexHtmlProcessor()).removeTags(htmlBefore);
+
+		const stylesheetTag = '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css">';
+
+		expect(htmlBefore).contains(stylesheetTag);
+		expect(htmlAfter).not.contains(stylesheetTag);
+	});
+
+
+
+	it('should remove rsms.me tags', () => {
+		const htmlBefore = readFileSync(__dirname + '/fixtures/index-rsms.html').toString();
+		const htmlAfter = (new IndexHtmlProcessor()).removeTags(htmlBefore);
+
+		const preconnectTag = '<link rel="preconnect" href="https://rsms.me/">';
+		const stylesheetTag = '<link rel="stylesheet" href="https://rsms.me/inter/inter.css">';
 
 		expect(htmlBefore).contains(preconnectTag);
 		expect(htmlAfter).not.contains(preconnectTag);
