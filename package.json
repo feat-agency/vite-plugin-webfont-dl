@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.7.5",
+	"version": "3.7.6",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
