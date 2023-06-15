@@ -1,0 +1,26 @@
+/* loaded from https://www.example.com/css/test.css */
+
+@font-face {
+  font-family: "test1";
+  src: url("https://www.example.com/fonts/materialdesignicons-webfont.eot?v=7.0.96");
+}
+
+@font-face {
+  font-family: "test2";
+  src: url("https://www.example.com/css/fonts/materialdesignicons-webfont.ttf?v=7.0.96");
+}
+
+@font-face {
+  font-family: "test3";
+  src: url("https://www.example.com/fonts/materialdesignicons-webfont.woff?v=7.0.96");
+}
+
+@font-face {
+  font-family: "test4";
+  src: url("https://www.example.com/css/fonts/materialdesignicons-webfont.woff2?v=7.0.96");
+}
+
+@font-face {
+  font-family: "test5";
+  src: url("https://www.example.com/fonts/materialdesignicons-webfont.woff2?v=7.0.96");
+}

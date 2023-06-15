@@ -30,8 +30,8 @@ describe('css loader', () => {
 
 
 	it('should normalize relative urls', () => {
-		const cssBefore = readFileSync(__dirname + '/fixtures/relative.css').toString();
-		const cssExpected = readFileSync(__dirname + '/fixtures/relative-to-absolute.css').toString();
+		const cssBefore = readFileSync(__dirname + '/fixtures/pre-normalization.css').toString();
+		const cssExpected = readFileSync(__dirname + '/fixtures/post-normalization.css').toString();
 
 		const cssLoader = new CssLoader(
 			{},

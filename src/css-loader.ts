@@ -6,8 +6,7 @@ import { Downloader } from './downloader';
 import { Logger } from './logger';
 
 export class CssLoader {
-	private isRelativeUrlRegex = /\.\.?\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
-	private protocolRelativeUrlRegex = /(?<!https?:)\/\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
+	private fontUrlRegex = /[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
 
 	constructor(
 		private options: Options,
@@ -42,14 +41,18 @@ export class CssLoader {
 	}
 
 	public normalizeUrls(cssContent: string, cssUrl: string) {
-		cssContent = cssContent.replaceAll(this.isRelativeUrlRegex, (match) => {
-			const urlObject = new URL(match, cssUrl);
+		cssContent = cssContent.replaceAll(this.fontUrlRegex, (match) => {
+			// fully-qualified url
+			if (match.startsWith('http://') || match.startsWith('https://')) {
+				return match;
+			}
 
-			return urlObject.href;
-		});
+			// protocol relative url
+			if (match.startsWith('//')) {
+				return 'https:' + match;
+			}
 
-		cssContent = cssContent.replaceAll(this.protocolRelativeUrlRegex, (match) => {
-			return 'https:' + match;
+			return new URL(match, cssUrl).href;
 		});
 
 		return cssContent;
