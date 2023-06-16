@@ -118,6 +118,8 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 - **[Google Fonts](https://fonts.google.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Bunny Fonts](https://bunny.net/fonts/)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - **[Fontshare](https://www.fontshare.com)**: works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[Fira Code](https://github.com/tonsky/FiraCode)**, **[Hack](https://github.com/source-foundry/Hack)** fonts (`cdn.jsdelivr.net`): works with [Zero config](#zero-config) or [Simple config](#simple-config)
+- **[Inter](https://rsms.me/inter/)** font (`rsms.me`): works with [Zero config](#zero-config) or [Simple config](#simple-config)
 - *any provider with CSS (containing `@font-face` definitions) works with [Simple config](#simple-config)*
 
 <br>
