@@ -6,17 +6,15 @@
 	"parser": "@typescript-eslint/parser",
 	"parserOptions": {
 		"tsconfigRootDir": ".",
-		"project": [
-			"./tsconfig.json"
-		]
+		"project": true
 	},
 	"plugins": [
 		"@typescript-eslint"
 	],
 	"extends": [
 		"eslint:recommended",
-		"plugin:@typescript-eslint/recommended",
-		"plugin:@typescript-eslint/recommended-requiring-type-checking"
+		"plugin:@typescript-eslint/recommended-type-checked",
+		"plugin:@typescript-eslint/stylistic-type-checked"
 	],
 	"rules": {
 		"comma-dangle": ["error", "always-multiline"],
@@ -26,7 +24,8 @@
 		"semi-spacing": ["error", {
 			"before": false,
 			"after": true
-		}]
+		}],
+		"@typescript-eslint/no-empty-interface": 0
 	},
 	"ignorePatterns": [
 		"dist/",

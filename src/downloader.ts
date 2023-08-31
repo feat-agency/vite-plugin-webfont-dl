@@ -64,7 +64,7 @@ export class Downloader {
 			headers: {
 				'User-Agent': this.userAgentWoff2,
 			},
-			responseType: responseType || 'arraybuffer',
+			responseType: responseType ?? 'arraybuffer',
 		});
 	}
 

@@ -5,8 +5,7 @@ export interface Font {
 	localPath: string;
 }
 
-export interface FontsCollection {
-	[key: string]: Font;
+export interface FontsCollection extends Record<string, Font> {
 }
 
 export interface ParsedBundleCss {

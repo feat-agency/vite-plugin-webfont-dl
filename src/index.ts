@@ -38,7 +38,7 @@ function viteWebfontDownload(
 	let fonts: FontsCollection = {};
 	const cssFilename = 'webfonts.css';
 
-	const fontUrlsDevMap: Map<string, string> = new Map();
+	const fontUrlsDevMap = new Map<string, string>();
 
 	const logger = new Logger();
 	const downloader = new Downloader(options, logger);
@@ -234,7 +234,7 @@ function viteWebfontDownload(
 			return cssInjector.injectAsStylesheet(html, base, cssPath);
 		}
 
-		return cssInjector.injectAsStyleTag(html, cssContent as string);
+		return cssInjector.injectAsStyleTag(html, cssContent!);
 	};
 
 	const toDuration = (started: number): string => {
