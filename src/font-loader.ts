@@ -10,13 +10,13 @@ export class FontLoader {
 	) {}
 
 	async load(url: string): Promise<Buffer> {
-		this.logger.flashLine(url);
-
 		const cachedFile = this.fileCache.get('font', url);
 
 		if (cachedFile) {
 			return cachedFile as Buffer;
 		}
+
+		this.logger.flashLine(url);
 
 		const response = await this.downloader.download(url);
 
