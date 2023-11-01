@@ -6,7 +6,7 @@ import { Logger } from './logger';
 import { Options } from './types';
 
 export class Downloader {
-	private userAgentWoff2 = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36';
+	private userAgentWoff2 = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.0.0 Safari/537.36';
 	private maxTries = 3;
 	private timeout = 2500;
 	private waitBeforeRetry = [25, 2500]; // range
