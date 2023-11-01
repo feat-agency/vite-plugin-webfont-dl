@@ -4,6 +4,7 @@
 
 import cache, { Cache } from 'flat-cache';
 import { Options } from './types';
+import { version } from '../package.json';
 
 export class FileCache {
 	private enabled = true;
@@ -20,8 +21,8 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.storeCss = cache.create('vite-plugin-webfont-dl__css');
-		this.storeFont = cache.create('vite-plugin-webfont-dl__font');
+		this.storeCss = cache.create(`vite-plugin-webfont-dl__${version}__css`);
+		this.storeFont = cache.create(`vite-plugin-webfont-dl__${version}__font`);
 
 		if (!this.enabled) {
 			this.clear();
@@ -67,8 +68,8 @@ export class FileCache {
 	}
 
 	clear() {
-		cache.clearCacheById('vite-plugin-webfont-dl__css');
-		cache.clearCacheById('vite-plugin-webfont-dl__font');
+		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__css`);
+		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__font`);
 	}
 }
 
