@@ -399,11 +399,12 @@ function viteWebfontDownload(
 			collectWebfontsFromBundleCss(bundle);
 
 			try {
-				parseFonts(await downloadWebfontCss());
+				const webfontsCss = await downloadWebfontCss();
+				parseFonts(webfontsCss);
 				await downloadFonts();
 				replaceFontUrls();
 
-				if (options.injectAsStyleTag === false || !htmlFiles.size) {
+				if (!!webfontsCss && (options.injectAsStyleTag === false || !htmlFiles.size)) {
 					saveCss();
 				}
 

@@ -4,24 +4,24 @@ export class IndexHtmlProcessor {
 		// <link href="..." rel="stylesheet">
 
 		// https://fonts.googleapis.com
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 
 		// https://fonts.bunny.net
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 
 		// https://api.fontshare.com
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 
 		// https://cdn.jsdelivr.net
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 
 		// https://rsms.me
-		/<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]*>/g,
-		/<link[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]*>/g,
+		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/g,
 	];
 
 	private preconnectRegexes = [
@@ -59,7 +59,9 @@ export class IndexHtmlProcessor {
 
 			if (matches) {
 				for (const match of matches) {
-					webfontUrls.add(match[1]);
+					if (!match[1]) {
+						webfontUrls.add(match[2]);
+					}
 				}
 			}
 		}
