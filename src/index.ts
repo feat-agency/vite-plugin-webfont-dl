@@ -400,24 +400,27 @@ function viteWebfontDownload(
 
 			try {
 				const webfontsCss = await downloadWebfontCss();
-				parseFonts(webfontsCss);
-				await downloadFonts();
-				replaceFontUrls();
 
-				if (!!webfontsCss && (options.injectAsStyleTag === false || !htmlFiles.size)) {
-					saveCss();
-				}
+				if (webfontsCss) {
+					parseFonts(webfontsCss);
+					await downloadFonts();
+					replaceFontUrls();
 
-				htmlFiles.forEach((html, htmlPath) => {
-					const asset = bundle[htmlPath] as OutputAsset;
-
-					if (asset !== undefined) {
-						asset.source = indexHtmlProcessor.removeTags(asset.source as string);
-						asset.source = injectToHtml(asset.source, cssContent);
-
-						htmlFiles.set(htmlPath, asset.source);
+					if (options.injectAsStyleTag === false || !htmlFiles.size) {
+						saveCss();
 					}
-				});
+
+					htmlFiles.forEach((html, htmlPath) => {
+						const asset = bundle[htmlPath] as OutputAsset;
+
+						if (asset !== undefined) {
+							asset.source = indexHtmlProcessor.removeTags(asset.source as string);
+							asset.source = injectToHtml(asset.source, cssContent);
+
+							htmlFiles.set(htmlPath, asset.source);
+						}
+					});
+				}
 			} catch (error) {
 				logger.error(
 					colors.red((error as Error).message)
