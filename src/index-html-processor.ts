@@ -4,24 +4,24 @@ export class IndexHtmlProcessor {
 		// <link href="..." rel="stylesheet">
 
 		// https://fonts.googleapis.com
-		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]*>/gs,
-		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+href=['"]?(https:\/\/fonts\.googleapis\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 
 		// https://fonts.bunny.net
-		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/gs,
-		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+href=['"]?(https:\/\/fonts\.bunny\.net[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 
 		// https://api.fontshare.com
-		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/gs,
-		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+href=['"]?(https:\/\/api\.fontshare\.com[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 
 		// https://cdn.jsdelivr.net
-		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]*>/gs,
-		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+href=['"]?(https:\/\/cdn\.jsdelivr\.net[^'">]+\.css)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 
 		// https://rsms.me
-		/(<!--(?!-->).*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]*>/gs,
-		/(<!--(?!-->).*?)?<link[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+rel=['"]?stylesheet['"]?[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]*>/gs,
+		/(<!--.*?)?<link[^>]+href=['"]?(https:\/\/rsms\.me[^'">]+)['"]?[^>]+rel=['"]?stylesheet['"]?[^>]*>/gs,
 	];
 
 	private preconnectRegexes = [
@@ -59,7 +59,7 @@ export class IndexHtmlProcessor {
 
 			if (matches) {
 				for (const match of matches) {
-					if (!match[1]) {
+					if (!match[1] || match[1].includes('-->')) {
 						webfontUrls.add(match[2]);
 					}
 				}
