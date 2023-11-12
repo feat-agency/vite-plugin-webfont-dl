@@ -11,6 +11,7 @@ describe('css loader', () => {
 	it('should minify css', () => {
 		const options: Options = {
 			minifyCss: true,
+			cache: false,
 		};
 
 		const cssBefore = readFileSync(__dirname + '/fixtures/google-fonts.css').toString();
@@ -37,8 +38,9 @@ describe('css loader', () => {
 			{},
 			new Logger(),
 			new Downloader({}, new Logger()),
-			new FileCache({})
+			new FileCache({ cache: false })
 		);
+
 		const cssAfter = cssLoader.normalizeUrls(cssBefore, 'https://www.example.com/css/test.css');
 
 		expect(cssAfter).eq(cssExpected);
