@@ -2,25 +2,19 @@ import { AxiosProxyConfig } from 'axios';
 
 export interface Font {
 	url: string;
+	filename: string;
 	localPath: string;
+	binary?: Buffer;
 }
 
-export interface FontsCollection extends Record<string, Font> {
-}
+export type FontCollection = Map<string, Font>;
 
 export interface ParsedBundleCss {
-	fonts: FontsCollection;
+	fonts: FontCollection;
 	webfontUrlsCss: Set<string>;
 	matchedCssParts: string[];
 }
 
-/**
- * This is the description of the interface
- *
- * @interface Options
- * @member {boolean} injectAsStyleTag is used to inject critical css between style tag.
- * @member {boolean} async is used to import stylesheet asynchronously.
- */
 export interface Options {
 	/**
 	 * Inject critical css between style tag.

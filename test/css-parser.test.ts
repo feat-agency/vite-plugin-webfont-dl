@@ -8,7 +8,16 @@ describe('css parser', () => {
 		const css = readFileSync(__dirname + '/fixtures/google-fonts.css').toString();
 		const fonts = (new CssParser()).parse(css, '/', 'assets');
 
-		expect(Object.keys(fonts).length).eq(20); // 26 with duplicates
+		expect(fonts.size).eq(20); // 26 with duplicates
+	});
+
+	it('should parse Google Fonts kit', () => {
+		const css = readFileSync(__dirname + '/fixtures/google-fonts-kit.css').toString();
+		const fonts = (new CssParser()).parse(css, '/', 'assets');
+
+		console.log(fonts);
+
+		expect(fonts.size).eq(1);
 	});
 
 	it('should find imports', () => {

@@ -1,4 +1,4 @@
-import type { FontsCollection, ParsedBundleCss } from './types';
+import type { Font, FontCollection, ParsedBundleCss } from './types';
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
@@ -16,8 +16,8 @@ export class CssParser {
 		/https:\/\/api\.fontshare\.com\//i,
 	];
 
-	public parse(cssContent: string, base: string, assetsDir: string): FontsCollection {
-		const fonts: FontsCollection = {};
+	public parse(cssContent: string, base: string, assetsDir: string): FontCollection {
+		const fonts: FontCollection = new Map();
 
 		const fontSrcMatches = cssContent.matchAll(this.fontSrcRegex);
 		const googleFontsKitSrcMatches = cssContent.matchAll(this.googleFontsKitSrcRegex);
@@ -30,10 +30,12 @@ export class CssParser {
 				if (filenameMatch) {
 					const filename = filenameMatch[0];
 
-					fonts[filename] = {
+					fonts.set(filename, {
+						// source: 'src'
 						url,
+						filename,
 						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename,
-					};
+					});
 				}
 			}
 		}
@@ -44,10 +46,11 @@ export class CssParser {
 				const filename = url.match(this.googleFontsFileRegex)?.[1]?.toString();
 
 				if (filename) {
-					fonts[filename + '.woff2'] = {
+					fonts.set(filename + '.woff2', {
 						url,
+						filename,
 						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename + '.woff2',
-					};
+					});
 				}
 			}
 		}
@@ -58,7 +61,7 @@ export class CssParser {
 
 
 	public parseBundleCss(cssContent: string, base: string, assetsDir: string): ParsedBundleCss {
-		const fonts: FontsCollection = {};
+		const fonts: FontCollection = new Map();
 		const webfontUrlsCss = new Set<string>([]);
 		const matchedCssParts: string[] = [];
 
@@ -72,14 +75,12 @@ export class CssParser {
 			const fontFace = match[0];
 			const parsedFonts = this.parse(fontFace, base, assetsDir);
 
-			for (const filename in parsedFonts) {
-				const font = parsedFonts[filename];
-
+			parsedFonts.forEach((font: Font) => {
 				if (this.webfontProviders.some((regex) => regex.test(font.url))) {
-					fonts[filename] = font;
+					fonts.set(font.filename, font);
 					matchedCssParts.push(match[0]);
 				}
-			}
+			});
 		});
 
 		imports.forEach((match) => {
