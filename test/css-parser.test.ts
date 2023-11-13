@@ -15,8 +15,6 @@ describe('css parser', () => {
 		const css = readFileSync(__dirname + '/fixtures/google-fonts-kit.css').toString();
 		const fonts = (new CssParser()).parse(css, '/', 'assets');
 
-		console.log(fonts);
-
 		expect(fonts.size).eq(1);
 	});
 

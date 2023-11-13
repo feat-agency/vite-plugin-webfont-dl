@@ -1,5 +1,7 @@
 import { AxiosProxyConfig } from 'axios';
 
+export type FontExtension = 'woff2' | 'woff' | 'ttf' | 'otf' | 'svg' | 'eot';
+
 export interface Font {
 	url: string;
 	filename: string;
@@ -27,6 +29,12 @@ export interface Options {
 	 * default: value of `build.minify`
 	 * */
 	minifyCss?: boolean;
+
+	/**
+	 * Embed base64-encoded fonts into css.
+	 * default: `false`
+	 * */
+	embedFonts?: boolean;
 
 	/**
 	 * Load stylesheet asynchronously (using `media="print"`).

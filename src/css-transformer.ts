@@ -1,17 +1,44 @@
-import type { FontCollection } from './types';
+import type { Font, FontCollection, FontExtension, Options } from './types';
+
+enum FontMime {
+	woff2 = 'font/woff2',
+	woff = 'font/woff',
+	ttf = 'font/ttf',
+	otf = 'font/otf',
+	svg = 'image/svg+xml',
+	eot = 'application/vnd.ms-fontobject',
+}
 
 export class CssTransformer {
+	constructor(
+		private options: Options,
+	) {}
+
 	public transform(
 		cssContent: string,
 		fonts: FontCollection
 	): string {
-		for (const fontFile in fonts) {
-			const font = fonts[fontFile];
+		fonts.forEach((font: Font) => {
+			if (!this.options.embedFonts || !font.binary) {
+				cssContent = cssContent.replaceAll(font.url, font.localPath);
+			} else if (font.binary) {
+				const fontUrlRegex = new RegExp(`url\\(['"]?\\b${font.url}\\b['"]?\\)`, 'gi');
 
-			cssContent = cssContent.replaceAll(font.url, font.localPath);
-		}
+				cssContent = cssContent.replaceAll(
+					fontUrlRegex,
+					`url(data:${this.getFontMime(font)};base64,${font.binary.toString('base64')})`
+				);
+			}
+		});
+
 
 		return cssContent;
+	}
+
+	private getFontMime(font: Font): string {
+		const extension = font.filename.replace(/^.+\.(.+)$/, '$1') as FontExtension;
+
+		return FontMime[extension];
 	}
 }
 

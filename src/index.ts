@@ -194,10 +194,14 @@ function viteWebfontDownload(
 	};
 
 	const saveFont = (font: Font, binary: Buffer) => {
-		font.localPath = base + saveFile(
-			font.filename,
-			binary
-		);
+		if (!options.embedFonts) {
+			font.localPath = base + saveFile(
+				font.filename,
+				binary
+			);
+		} else {
+			font.binary = binary;
+		}
 	};
 
 	const loadAndPrepareDevFonts = async () => {
