@@ -311,10 +311,12 @@ function viteWebfontDownload(
 				res: ServerResponse,
 			) => {
 				void (async () => {
-					res.setHeader('Content-Type', 'text/css');
-
 					try {
 						await loadAndPrepareDevFonts();
+
+						res.setHeader('Access-Control-Allow-Origin', '*');
+						res.setHeader('Content-Type', 'text/css');
+
 						res.end(cssContent);
 					} catch (error) {
 						logger.error(
@@ -336,6 +338,7 @@ function viteWebfontDownload(
 					const url = req.originalUrl?.replace(/[?#].*$/, '');
 
 					res.setHeader('Access-Control-Allow-Origin', '*');
+					res.setHeader('Content-Type', 'font/' + (url?.replace(/^.*\./, '') || 'woff2'));
 
 					res.end(
 						await downloadFont(

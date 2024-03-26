@@ -25,7 +25,8 @@
 			"before": false,
 			"after": true
 		}],
-		"@typescript-eslint/no-empty-interface": 0
+		"@typescript-eslint/no-empty-interface": 0,
+		"@typescript-eslint/prefer-nullish-coalescing": 0
 	},
 	"ignorePatterns": [
 		"dist/",

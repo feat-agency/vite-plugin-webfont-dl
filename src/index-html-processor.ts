@@ -88,7 +88,7 @@ export class IndexHtmlProcessor {
 	private removeWebfontTags(html: string): string {
 		for (const regex of this.webfontRegexes) {
 			const removeRegex = new RegExp('[ \t]*' + regex.source + '(\r\n|\r|\n)?', 'g');
-			html = html.replace(removeRegex, '');
+			html = html.replace(removeRegex, '$1');
 		}
 
 		return html;
