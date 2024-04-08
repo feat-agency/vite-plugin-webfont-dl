@@ -46,10 +46,11 @@ export class CssParser {
 				const filename = url.match(this.googleFontsFileRegex)?.[1]?.toString();
 
 				if (filename) {
-					fonts.set(filename + '.woff2', {
+					const filenameWithExtension = filename + '.woff2';
+					fonts.set(filenameWithExtension, {
 						url,
-						filename,
-						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename + '.woff2',
+						filename: filenameWithExtension,
+						localPath: base + (assetsDir ? assetsDir + '/' : '') + filenameWithExtension,
 					});
 				}
 			}
