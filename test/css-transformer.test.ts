@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { CssParser } from 'src/css-parser';
 import { CssTransformer } from 'src/css-transformer';
 import { Font } from 'src/types';

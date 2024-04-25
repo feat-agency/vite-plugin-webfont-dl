@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { CssInjector } from 'src/css-injector';
 import { Options } from 'src/types';
 import { describe, expect, it } from 'vitest';

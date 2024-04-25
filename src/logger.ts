@@ -1,4 +1,4 @@
-import { env, stdout } from 'process';
+import { env, stdout } from 'node:process';
 import { Logger as ViteLogger } from 'vite';
 import colors from 'picocolors';
 

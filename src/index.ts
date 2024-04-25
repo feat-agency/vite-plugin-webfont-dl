@@ -1,4 +1,4 @@
-import { ClientRequest, ServerResponse } from 'http';
+import { ClientRequest, ServerResponse } from 'node:http';
 import { NormalizedOutputOptions, OutputAsset, OutputBundle, PluginContext } from 'rollup';
 import type { Connect, IndexHtmlTransformContext, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import colors from 'picocolors';

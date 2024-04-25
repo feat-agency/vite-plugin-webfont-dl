@@ -1,4 +1,4 @@
-import { URL } from 'url';
+import { URL } from 'node:url';
 import CleanCss from 'clean-css';
 import { Options } from './types';
 import { FileCache } from './file-cache';

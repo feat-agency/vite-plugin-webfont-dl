@@ -1,6 +1,6 @@
 import { Axios, AxiosResponse, ResponseType, isAxiosError } from 'axios';
-import { Agent as HttpAgent } from 'http';
-import { Agent as HttpsAgent } from 'https';
+import { Agent as HttpAgent } from 'node:http';
+import { Agent as HttpsAgent } from 'node:https';
 import colors from 'picocolors';
 import { Logger } from './logger';
 import { Options } from './types';

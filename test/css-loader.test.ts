@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { CssLoader } from 'src/css-loader';
 import { Downloader } from 'src/downloader';
 import { FileCache } from 'src/file-cache';
