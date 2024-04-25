@@ -1,4 +1,5 @@
 import type { Font, FontCollection, ParsedBundleCss } from './types';
+import { createHash } from 'node:crypto';
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
@@ -43,10 +44,15 @@ export class CssParser {
 		if (googleFontsKitSrcMatches) {
 			for (const googleFontsKitSrcMatch of googleFontsKitSrcMatches) {
 				const url = googleFontsKitSrcMatch.toString();
-				const filename = url.match(this.googleFontsFileRegex)?.[1]?.toString();
+				let filename = url.match(this.googleFontsFileRegex)?.[1]?.toString();
 
 				if (filename) {
+					if (filename.length > 50) {
+						filename = createHash('sha1').update(filename).digest('hex');
+					}
+
 					const filenameWithExtension = filename + '.woff2';
+
 					fonts.set(filenameWithExtension, {
 						url,
 						filename: filenameWithExtension,
