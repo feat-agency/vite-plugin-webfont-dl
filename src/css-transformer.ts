@@ -22,7 +22,8 @@ export class CssTransformer {
 			if (!this.options.embedFonts || !font.binary) {
 				cssContent = cssContent.replaceAll(font.url, font.localPath);
 			} else if (font.binary) {
-				const fontUrlRegex = new RegExp(`url\\(['"]?\\b${font.url}\\b['"]?\\)`, 'gi');
+				const escapedUrl = font.url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+				const fontUrlRegex = new RegExp(`url\\(['"]?\\b${escapedUrl}\\b['"]?\\)`, 'gi');
 
 				cssContent = cssContent.replaceAll(
 					fontUrlRegex,
