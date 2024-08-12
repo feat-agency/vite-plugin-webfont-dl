@@ -80,7 +80,7 @@ function viteWebfontDownload(
 		webfontUrlsCss.clear();
 
 		for (const path in bundle) {
-			if (path.match(/\.css$/)) {
+			if (/\.css$/.exec(path)) {
 				let bundleCssContent = (bundle[path] as OutputAsset).source.toString();
 
 				const parsedBundleCss = cssParser.parseBundleCss(
@@ -342,7 +342,6 @@ function viteWebfontDownload(
 
 					res.end(
 						await downloadFont(
-							// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 							fontUrlsDevMap.get(url!)!
 						)
 					);
@@ -371,7 +370,7 @@ function viteWebfontDownload(
 				}
 
 				if ( // /assets/xxx.woff2
-					url.match(/\.(?:woff2?|eot|ttf|otf|svg)$/) &&
+					/\.(?:woff2?|eot|ttf|otf|svg)$/.exec(url) &&
 					fontUrlsDevMap.has(url)
 				) {
 					handleDevServerWebfont(req, res);

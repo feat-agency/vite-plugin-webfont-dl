@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.9.4",
+	"version": "3.9.5",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -42,7 +42,7 @@
 	"dependencies": {
 		"axios": "^1",
 		"clean-css": "^5",
-		"flat-cache": "^3",
+		"flat-cache": "^5",
 		"picocolors": "^1"
 	},
 	"peerDependencies": {
@@ -51,13 +51,13 @@
 	"devDependencies": {
 		"@types/clean-css": "^4",
 		"@types/flat-cache": "^2",
-		"@types/node": "^20",
-		"@typescript-eslint/eslint-plugin": "^6",
-		"eslint": "^8",
+		"@types/node": "^22",
+		"@typescript-eslint/eslint-plugin": "^8",
+		"eslint": "^9",
 		"rollup": "^2 || ^3 || ^4",
-		"tsup": "^6 || ^7",
+		"tsup": "^6 || ^7 || ^8",
 		"typescript": "^4 || ^5",
-		"vitest": "^0"
+		"vitest": "^0 || ^1 || ^2"
 	},
 	"repository": {
 		"type": "git",
