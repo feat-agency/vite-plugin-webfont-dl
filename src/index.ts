@@ -196,8 +196,8 @@ function viteWebfontDownload(
 	const saveFont = (font: Font, binary: Buffer) => {
 		if (!options.embedFonts) {
 			let subfolder = options.fontsSubfolder;
-			if (subfolder.startsWith('/')) subfolder = subfolder.slice(1);
 			if (!subfolder.endsWith('/')) subfolder = subfolder + '/';
+			if (subfolder.startsWith('/')) subfolder = subfolder.slice(1);
 			font.localPath = base + saveFile(
 				subfolder + font.filename,
 				binary
