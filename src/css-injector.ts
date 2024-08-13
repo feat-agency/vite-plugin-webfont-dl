@@ -2,7 +2,7 @@ import { Options } from './types';
 
 export class CssInjector {
 
-	constructor(private options: Options) { }
+	constructor(private options: Required<Options>) { }
 
 	public injectAsStylesheet(html: string, base: string, cssPath: string): string {
 		if (this.options.async) {

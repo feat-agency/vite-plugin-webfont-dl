@@ -55,5 +55,11 @@ export interface Options {
 	 * default: `false`
 	 */
 	proxy?: false | AxiosProxyConfig;
+
+	/**
+	 * Moves downloaded font files to separate subfolder
+	 * default: ``
+	 */
+	fontsSubfolder?: string;
 }
 

@@ -9,7 +9,7 @@ export class CssLoader {
 	private fontUrlRegex = /[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
 
 	constructor(
-		private options: Options,
+		private options: Required<Options>,
 		private logger: Logger,
 		private downloader: Downloader,
 		private fileCache: FileCache
