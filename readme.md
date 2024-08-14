@@ -132,7 +132,8 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
   Minify CSS code during build.
 
 - **`embedFonts`** <small>(`boolean`, default: `false`)</small>:<br>
-  Embed base64-encoded fonts into css.
+  Embed base64-encoded fonts into css.<br>
+  In some cases can cause filesize increase if css containes multiple references to same font file. [Example](https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap&text=0123456789)
 
 - **`async`** <small>(`boolean`, default: `true`)</small>:<br>
   Prevent the usage of inline event handlers (`webfonts.css`) that can cause Content Security Policy issues.<br>

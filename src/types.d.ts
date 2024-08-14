@@ -32,6 +32,7 @@ export interface Options {
 
 	/**
 	 * Embed base64-encoded fonts into css.
+	 * In some cases can cause filesize increase if css containes multiple references to same font file.
 	 * default: `false`
 	 * */
 	embedFonts?: boolean;
@@ -58,7 +59,7 @@ export interface Options {
 
 	/**
 	 * Moves downloaded font files to separate subfolder
-	 * default: ``
+	 * default: `''`
 	 */
 	fontsSubfolder?: string;
 }
