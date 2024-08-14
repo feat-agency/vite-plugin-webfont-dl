@@ -13,7 +13,7 @@ const defaultOptions: Required<Options> = {
 export const getOptionsWithDefaults = (options: Options = {}): Required<Options> => {
 	const optionsWithDefaults = {
 		...defaultOptions,
-		...options
+		...options,
 	};
 	return optionsWithDefaults;
 };
