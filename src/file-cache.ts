@@ -2,14 +2,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import cache, { Cache } from 'flat-cache';
+import { create as cacheCreate, clearCacheById, type FlatCache } from 'flat-cache';
 import { Options } from './types';
 import { version } from '../package.json';
 
+type FileData = string | Buffer;
+
 export class FileCache {
 	private enabled = true;
-	private storeCss: Cache;
-	private storeFont: Cache;
+	private storeCssId = `vite-plugin-webfont-dl__${version}__css`;
+	private storeCss: FlatCache;
+	private storeFontId = `vite-plugin-webfont-dl__${version}__font`;
+	private storeFont: FlatCache;
 
 	public hits = {
 		css: 0,
@@ -21,22 +25,22 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.storeCss = cache.create(`vite-plugin-webfont-dl__${version}__css`);
-		this.storeFont = cache.create(`vite-plugin-webfont-dl__${version}__font`);
+		this.storeCss = cacheCreate({ cacheId: this.storeCssId });
+		this.storeFont = cacheCreate({ cacheId: this.storeFontId });
 
 		if (!this.enabled) {
 			this.clear();
 		}
 	}
 
-	get(type: 'css' | 'font', url: string): Buffer | string | undefined {
+	get(type: 'css' | 'font', url: string): FileData | undefined {
 		if (!this.enabled) {
 			return;
 		}
 
 		const cachedFile = type === 'css' ?
-			this.storeCss.getKey(url) :
-			this.storeFont.getKey(url);
+			this.storeCss.getKey<any>(url) :
+			this.storeFont.getKey<any>(url);
 
 		if (cachedFile) {
 			if (type === 'css') {
@@ -53,7 +57,7 @@ export class FileCache {
 		}
 	}
 
-	save(type: 'css' | 'font', url: string, data: Buffer | string): void {
+	save(type: 'css' | 'font', url: string, data: FileData): void {
 		if (!this.enabled) {
 			return;
 		}
@@ -68,8 +72,7 @@ export class FileCache {
 	}
 
 	clear() {
-		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__css`);
-		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__font`);
+		clearCacheById(this.storeCssId);
+		clearCacheById(this.storeFontId);
 	}
 }
-
