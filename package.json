@@ -42,7 +42,7 @@
 	"dependencies": {
 		"axios": "^1",
 		"clean-css": "^5",
-		"flat-cache": "^5",
+		"flat-cache": "^6",
 		"picocolors": "^1"
 	},
 	"peerDependencies": {
@@ -50,7 +50,6 @@
 	},
 	"devDependencies": {
 		"@types/clean-css": "^4",
-		"@types/flat-cache": "^2",
 		"@types/node": "^22",
 		"@typescript-eslint/eslint-plugin": "^8",
 		"eslint": "^9",
