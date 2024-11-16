@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
+import { Buffer } from 'node:buffer';
 import { create as cacheCreate, clearCacheById, type FlatCache } from 'flat-cache';
 import { Options } from './types';
 import { version } from '../package.json';
 
-type FileData = string | Buffer;
+interface BufferJson {
+	type: 'Buffer';
+	data: number[];
+}
+type FileData = string | Buffer | BufferJson;
 
 export class FileCache {
 	private enabled = true;
-	private storeCssId = `vite-plugin-webfont-dl__${version}__css`;
-	private storeCss: FlatCache;
-	private storeFontId = `vite-plugin-webfont-dl__${version}__font`;
-	private storeFont: FlatCache;
+	private cacheID = `plugin-webfont-dl_${version}.json`;
+	private cache: FlatCache;
 
 	public hits = {
 		css: 0,
@@ -25,8 +24,10 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.storeCss = cacheCreate({ cacheId: this.storeCssId });
-		this.storeFont = cacheCreate({ cacheId: this.storeFontId });
+		this.cache = cacheCreate({
+			cacheId: this.cacheID,
+			cacheDir: 'node_modules/.vite/cache',
+		});
 
 		if (!this.enabled) {
 			this.clear();
@@ -38,9 +39,7 @@ export class FileCache {
 			return;
 		}
 
-		const cachedFile = type === 'css' ?
-			this.storeCss.getKey<any>(url) :
-			this.storeFont.getKey<any>(url);
+		const cachedFile = this.cache.get<FileData | undefined>(url);
 
 		if (cachedFile) {
 			if (type === 'css') {
@@ -49,11 +48,11 @@ export class FileCache {
 				this.hits.font++;
 			}
 
-			if (cachedFile.type !== undefined) {
-				return Buffer.from(cachedFile.data);
+			if ((cachedFile as BufferJson).type === 'Buffer') {
+				return Buffer.from((cachedFile as BufferJson).data);
 			}
 
-			return cachedFile as string;
+			return cachedFile;
 		}
 	}
 
@@ -62,17 +61,11 @@ export class FileCache {
 			return;
 		}
 
-		if (type === 'css') {
-			this.storeCss.setKey(url, data);
-			this.storeCss.save(true);
-		} else {
-			this.storeFont.setKey(url, data);
-			this.storeFont.save(true);
-		}
+		this.cache.set(url, data);
+		this.cache.save(true);
 	}
 
 	clear() {
-		clearCacheById(this.storeCssId);
-		clearCacheById(this.storeFontId);
+		clearCacheById(this.cacheID);
 	}
 }
