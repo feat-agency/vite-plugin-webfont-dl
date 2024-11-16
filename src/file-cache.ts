@@ -19,7 +19,7 @@ export class FileCache {
 		font: 0,
 	};
 
-	constructor(options: Options) {
+	constructor(options: Required<Options>) {
 		if (options.cache === false) {
 			this.enabled = false;
 		}

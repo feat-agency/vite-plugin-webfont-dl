@@ -11,7 +11,7 @@ enum FontMime {
 
 export class CssTransformer {
 	constructor(
-		private options: Options,
+		private options: Required<Options>,
 	) {}
 
 	public transform(

@@ -32,7 +32,7 @@ function viteWebfontDownload(
 	const webfontUrls = new Set<string>(_webfontUrls || []);
 	const webfontUrlsHtml = new Set<string>([]);
 	const webfontUrlsCss = new Set<string>([]);
-	const options: Options = getOptionsWithDefaults(_options);
+	const options = getOptionsWithDefaults(_options);
 
 
 	const fonts: FontCollection = new Map();
@@ -195,8 +195,19 @@ function viteWebfontDownload(
 
 	const saveFont = (font: Font, binary: Buffer) => {
 		if (!options.embedFonts) {
+			let assetsSubfolder = options.assetsSubfolder
+				.trim()
+				.replace(/^\/+/, '') // remove starting "/"
+				.replace(/\/+$/, '') // remove ending "/"
+				.trim();
+
+			// security "foo/../../bar"
+			if (assetsSubfolder.includes('../')) {
+				assetsSubfolder = '';
+			}
+
 			font.localPath = base + saveFile(
-				font.filename,
+				(assetsSubfolder ? `${assetsSubfolder}/` : '') + font.filename,
 				binary
 			);
 		} else {

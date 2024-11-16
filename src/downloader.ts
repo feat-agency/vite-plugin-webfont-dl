@@ -13,7 +13,7 @@ export class Downloader {
 	private axios: Axios;
 
 	constructor(
-		private options: Options,
+		private options: Required<Options>,
 		private logger: Logger
 	) {
 		this.axios = new Axios({

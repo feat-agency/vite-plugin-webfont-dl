@@ -1,14 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { CssInjector } from 'src/css-injector';
-import { Options } from 'src/types';
+import { getOptionsWithDefaults } from 'src/default-options';
 import { describe, expect, it } from 'vitest';
 
 describe('css injector', () => {
 
 	it('should inject style tag', () => {
-		const options: Options = {
+		const options = getOptionsWithDefaults({
 			minifyCss: false,
-		};
+		});
 
 		const css = readFileSync(__dirname + '/fixtures/google-fonts.css').toString();
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
@@ -25,9 +25,9 @@ describe('css injector', () => {
 
 
 	it('should inject style tag minified', () => {
-		const options: Options = {
+		const options = getOptionsWithDefaults({
 			minifyCss: true,
-		};
+		});
 
 		const css = readFileSync(__dirname + '/fixtures/google-fonts.min.css').toString();
 
@@ -45,9 +45,9 @@ describe('css injector', () => {
 
 
 	it('should inject style tag minified into minified html', () => {
-		const options: Options = {
+		const options = getOptionsWithDefaults({
 			minifyCss: true,
-		};
+		});
 
 		const css = readFileSync(__dirname + '/fixtures/google-fonts.min.css').toString();
 
@@ -65,10 +65,10 @@ describe('css injector', () => {
 
 
 	it('should inject stylesheet async', () => {
-		const options: Options = {
+		const options = getOptionsWithDefaults({
 			injectAsStyleTag: false,
 			async: true,
-		};
+		});
 
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const htmlExpected = htmlBefore.replace(
@@ -84,10 +84,10 @@ describe('css injector', () => {
 
 
 	it('should inject stylesheet sync', () => {
-		const options: Options = {
+		const options = getOptionsWithDefaults({
 			injectAsStyleTag: false,
 			async: false,
-		};
+		});
 
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const htmlExpected = htmlBefore.replace(
