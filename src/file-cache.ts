@@ -1,15 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-
-import cache, { Cache } from 'flat-cache';
+import { Buffer } from 'node:buffer';
+import { create as cacheCreate, clearCacheById, type FlatCache } from 'flat-cache';
 import { Options } from './types';
 import { version } from '../package.json';
 
+interface BufferJson {
+	type: 'Buffer';
+	data: number[];
+}
+type FileData = string | Buffer | BufferJson;
+
 export class FileCache {
 	private enabled = true;
-	private storeCss: Cache;
-	private storeFont: Cache;
+	private cacheID = `plugin-webfont-dl_${version}.json`;
+	private cache: FlatCache;
 
 	public hits = {
 		css: 0,
@@ -21,22 +24,22 @@ export class FileCache {
 			this.enabled = false;
 		}
 
-		this.storeCss = cache.create(`vite-plugin-webfont-dl__${version}__css`);
-		this.storeFont = cache.create(`vite-plugin-webfont-dl__${version}__font`);
+		this.cache = cacheCreate({
+			cacheId: this.cacheID,
+			cacheDir: 'node_modules/.vite/cache',
+		});
 
 		if (!this.enabled) {
 			this.clear();
 		}
 	}
 
-	get(type: 'css' | 'font', url: string): Buffer | string | undefined {
+	get(type: 'css' | 'font', url: string): FileData | undefined {
 		if (!this.enabled) {
 			return;
 		}
 
-		const cachedFile = type === 'css' ?
-			this.storeCss.getKey(url) :
-			this.storeFont.getKey(url);
+		const cachedFile = this.cache.get<FileData | undefined>(url);
 
 		if (cachedFile) {
 			if (type === 'css') {
@@ -45,31 +48,24 @@ export class FileCache {
 				this.hits.font++;
 			}
 
-			if (cachedFile.type !== undefined) {
-				return Buffer.from(cachedFile.data);
+			if ((cachedFile as BufferJson).type === 'Buffer') {
+				return Buffer.from((cachedFile as BufferJson).data);
 			}
 
-			return cachedFile as string;
+			return cachedFile;
 		}
 	}
 
-	save(type: 'css' | 'font', url: string, data: Buffer | string): void {
+	save(type: 'css' | 'font', url: string, data: FileData): void {
 		if (!this.enabled) {
 			return;
 		}
 
-		if (type === 'css') {
-			this.storeCss.setKey(url, data);
-			this.storeCss.save(true);
-		} else {
-			this.storeFont.setKey(url, data);
-			this.storeFont.save(true);
-		}
+		this.cache.set(url, data);
+		this.cache.save(true);
 	}
 
 	clear() {
-		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__css`);
-		cache.clearCacheById(`vite-plugin-webfont-dl__${version}__font`);
+		clearCacheById(this.cacheID);
 	}
 }
-
