@@ -61,6 +61,6 @@ export interface Options {
 	 * Moves downloaded font files to separate subfolder
 	 * default: `''`
 	 */
-	fontsSubfolder?: string;
+	assetsSubfolder?: string;
 }
 

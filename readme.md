@@ -146,7 +146,7 @@ To make it work with [Laravel Vite Plugin](https://laravel.com/docs/vite) add th
 - **`proxy`** <small>(`false|AxiosProxyConfig`, default: `false`)</small>:<br>
   [Proxy configuration](https://axios-http.com/docs/req_config) for network requests.
 
-- **`fontsSubfolder`** <small>(`string`, default: `''`)</small>:<br>
+- **`assetsSubfolder`** <small>(`string`, default: `''`)</small>:<br>
   Moves downloaded font files to separate subfolder in assets directory.
 
 *usage:*
@@ -161,7 +161,7 @@ ViteWebfontDownload(
     async: true,
     cache: true,
     proxy: false,
-	fontsSubfolder: '',
+	assetsSubfolder: '',
   }
 )
 ```
@@ -180,7 +180,7 @@ ViteWebfontDownload(
     async: true,
     cache: true,
     proxy: false,
-	fontsSubfolder: '',
+	assetsSubfolder: '',
   }
 )
 ```

@@ -7,7 +7,7 @@ const defaultOptions: Required<Options> = {
 	async: true,
 	cache: true,
 	proxy: false,
-	fontsSubfolder: '',
+	assetsSubfolder: '',
 };
 
 export const getOptionsWithDefaults = (options: Options = {}): Required<Options> => {

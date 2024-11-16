@@ -195,11 +195,19 @@ function viteWebfontDownload(
 
 	const saveFont = (font: Font, binary: Buffer) => {
 		if (!options.embedFonts) {
-			let subfolder = options.fontsSubfolder;
-			if (!subfolder.endsWith('/')) subfolder = subfolder + '/';
-			if (subfolder.startsWith('/')) subfolder = subfolder.slice(1);
+			let assetsSubfolder = options.assetsSubfolder
+				.trim()
+				.replace(/^\/+/, '') // remove starting "/"
+				.replace(/\/+$/, '') // remove ending "/"
+				.trim();
+
+			// security "foo/../../bar"
+			if (assetsSubfolder.includes('../')) {
+				assetsSubfolder = '';
+			}
+
 			font.localPath = base + saveFile(
-				subfolder + font.filename,
+				(assetsSubfolder ? `${assetsSubfolder}/` : '') + font.filename,
 				binary
 			);
 		} else {
