@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { CssParser } from 'src/css-parser';
 import { CssTransformer } from 'src/css-transformer';
 import { Font } from 'src/types';
-import { getOptionsWithDefaults } from 'src/default-options';
+import { getResolvedOptions } from 'src/default-options';
 import { describe, expect, it } from 'vitest';
 
 describe('css transformer', () => {
@@ -12,7 +12,7 @@ describe('css transformer', () => {
 		const cssExpected = readFileSync(__dirname + '/fixtures/google-fonts-transformed.css').toString();
 
 		const fonts = (new CssParser()).parse(cssBefore, '/', 'assets');
-		const cssAfter = (new CssTransformer(getOptionsWithDefaults({}))).transform(cssBefore, fonts);
+		const cssAfter = (new CssTransformer(getResolvedOptions({}))).transform(cssBefore, fonts);
 
 		expect(cssAfter).eq(cssExpected);
 	});
@@ -27,7 +27,7 @@ describe('css transformer', () => {
 			font.binary = Buffer.from('TEST');
 		});
 
-		const cssAfter = (new CssTransformer(getOptionsWithDefaults({ embedFonts: true }))).transform(cssBefore, fonts);
+		const cssAfter = (new CssTransformer(getResolvedOptions({ embedFonts: true }))).transform(cssBefore, fonts);
 
 		expect(cssAfter).eq(cssExpected);
 	});

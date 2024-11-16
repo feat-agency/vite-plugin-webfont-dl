@@ -10,10 +10,9 @@ const defaultOptions: Required<Options> = {
 	assetsSubfolder: '',
 };
 
-export const getOptionsWithDefaults = (options: Options = {}): Required<Options> => {
-	const optionsWithDefaults = {
+export const getResolvedOptions = (options: Options = {}): Required<Options> => {
+	return {
 		...defaultOptions,
 		...options,
 	};
-	return optionsWithDefaults;
 };

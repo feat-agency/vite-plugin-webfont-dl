@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { CssInjector } from 'src/css-injector';
-import { getOptionsWithDefaults } from 'src/default-options';
+import { getResolvedOptions } from 'src/default-options';
 import { describe, expect, it } from 'vitest';
 
 describe('css injector', () => {
 
 	it('should inject style tag', () => {
-		const options = getOptionsWithDefaults({
+		const options = getResolvedOptions({
 			minifyCss: false,
 		});
 
@@ -25,7 +25,7 @@ describe('css injector', () => {
 
 
 	it('should inject style tag minified', () => {
-		const options = getOptionsWithDefaults({
+		const options = getResolvedOptions({
 			minifyCss: true,
 		});
 
@@ -45,7 +45,7 @@ describe('css injector', () => {
 
 
 	it('should inject style tag minified into minified html', () => {
-		const options = getOptionsWithDefaults({
+		const options = getResolvedOptions({
 			minifyCss: true,
 		});
 
@@ -65,7 +65,7 @@ describe('css injector', () => {
 
 
 	it('should inject stylesheet async', () => {
-		const options = getOptionsWithDefaults({
+		const options = getResolvedOptions({
 			injectAsStyleTag: false,
 			async: true,
 		});
@@ -73,7 +73,7 @@ describe('css injector', () => {
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const htmlExpected = htmlBefore.replace(
 			'</head>',
-			`  <link rel="preload" as="style" href="/assets/webfonts.css">\n    <link rel="stylesheet" media="print" onload="this.onload=null;this.removeAttribute('media');" href="/assets/webfonts.css">\n  </head>`
+			'  <link rel="preload" as="style" href="/assets/webfonts.css">\n    <link rel="stylesheet" media="print" onload="this.onload=null;this.removeAttribute(\'media\');" href="/assets/webfonts.css">\n  </head>'
 		);
 
 		const htmlAfter = (new CssInjector(options)).injectAsStylesheet(htmlBefore, '/', 'assets/webfonts.css');
@@ -84,7 +84,7 @@ describe('css injector', () => {
 
 
 	it('should inject stylesheet sync', () => {
-		const options = getOptionsWithDefaults({
+		const options = getResolvedOptions({
 			injectAsStyleTag: false,
 			async: false,
 		});
@@ -92,7 +92,7 @@ describe('css injector', () => {
 		const htmlBefore = readFileSync(__dirname + '/fixtures/index-no-fonts.html').toString();
 		const htmlExpected = htmlBefore.replace(
 			'</head>',
-			`  <link rel="preload" as="style" href="/assets/webfonts.css">\n    <link rel="stylesheet" href="/assets/webfonts.css">\n  </head>`
+			'  <link rel="preload" as="style" href="/assets/webfonts.css">\n    <link rel="stylesheet" href="/assets/webfonts.css">\n  </head>'
 		);
 
 		const htmlAfter = (new CssInjector(options)).injectAsStylesheet(htmlBefore, '/', 'assets/webfonts.css');

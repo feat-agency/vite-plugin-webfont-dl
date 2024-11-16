@@ -12,7 +12,7 @@ import { FontLoader } from './font-loader';
 import { FileCache } from './file-cache';
 import { IndexHtmlProcessor } from './index-html-processor';
 import { Logger } from './logger';
-import { getOptionsWithDefaults } from './default-options';
+import { getResolvedOptions } from './default-options';
 import { AxiosError } from 'axios';
 
 
@@ -32,7 +32,7 @@ function viteWebfontDownload(
 	const webfontUrls = new Set<string>(_webfontUrls || []);
 	const webfontUrlsHtml = new Set<string>([]);
 	const webfontUrlsCss = new Set<string>([]);
-	const options = getOptionsWithDefaults(_options);
+	const options = getResolvedOptions(_options);
 
 
 	const fonts: FontCollection = new Map();
