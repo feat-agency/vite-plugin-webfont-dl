@@ -157,11 +157,11 @@ ViteWebfontDownload(
   {
     injectAsStyleTag: true,
     minifyCss: true,
-	embedFonts: false,
+    embedFonts: false,
     async: true,
     cache: true,
     proxy: false,
-	assetsSubfolder: '',
+    assetsSubfolder: '',
   }
 )
 ```
@@ -176,11 +176,11 @@ ViteWebfontDownload(
   {
     injectAsStyleTag: true,
     minifyCss: true,
-	embedFonts: false,
+    embedFonts: false,
     async: true,
     cache: true,
     proxy: false,
-	assetsSubfolder: '',
+    assetsSubfolder: '',
   }
 )
 ```

@@ -1,4 +1,4 @@
-import type { Font, FontCollection, FontExtension, Options } from './types';
+import type { Font, FontCollection, FontExtension, Options } from '../types';
 
 enum FontMime {
 	woff2 = 'font/woff2',

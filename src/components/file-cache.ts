@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer';
 import { create as cacheCreate, clearCacheById, type FlatCache } from 'flat-cache';
-import { Options } from './types';
-import { version } from '../package.json';
+import { Options } from '../types';
+import { version } from '../../package.json';
 
 interface BufferJson {
 	type: 'Buffer';

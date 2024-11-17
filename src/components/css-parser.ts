@@ -1,4 +1,4 @@
-import type { Font, FontCollection, ParsedBundleCss } from './types';
+import type { Font, FontCollection, ParsedBundleCss } from '../types';
 import { createHash } from 'node:crypto';
 
 export class CssParser {

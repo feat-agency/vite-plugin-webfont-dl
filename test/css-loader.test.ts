@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
-import { CssLoader } from 'src/css-loader';
-import { Downloader } from 'src/downloader';
-import { FileCache } from 'src/file-cache';
-import { getResolvedOptions } from 'src/default-options';
+import { CssLoader } from 'src/components/css-loader';
+import { Downloader } from 'src/components/downloader';
+import { FileCache } from 'src/components/file-cache';
+import { getResolvedOptions } from 'src/components/default-options';
 import { describe, expect, it } from 'vitest';
-import { Logger } from 'src/logger';
+import { Logger } from 'src/components/logger';
 
 describe('css loader', () => {
 

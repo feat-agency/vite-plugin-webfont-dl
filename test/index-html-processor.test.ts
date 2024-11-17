@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { IndexHtmlProcessor } from 'src/index-html-processor';
+import { IndexHtmlProcessor } from 'src/components/index-html-processor';
 import { describe, expect, it } from 'vitest';
 
 describe('index.html processor', () => {

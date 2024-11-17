@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
-import { CssInjector } from 'src/css-injector';
-import { getResolvedOptions } from 'src/default-options';
+import { CssInjector } from 'src/components/css-injector';
+import { getResolvedOptions } from 'src/components/default-options';
 import { describe, expect, it } from 'vitest';
 
 describe('css injector', () => {

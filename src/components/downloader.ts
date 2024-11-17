@@ -3,7 +3,7 @@ import { Agent as HttpAgent } from 'node:http';
 import { Agent as HttpsAgent } from 'node:https';
 import colors from 'picocolors';
 import { Logger } from './logger';
-import { Options } from './types';
+import { Options } from '../types';
 
 export class Downloader {
 	private userAgentWoff2 = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.0.0 Safari/537.36';

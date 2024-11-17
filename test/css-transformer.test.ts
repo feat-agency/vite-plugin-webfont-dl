@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
-import { CssParser } from 'src/css-parser';
-import { CssTransformer } from 'src/css-transformer';
+import { CssParser } from 'src/components/css-parser';
+import { CssTransformer } from 'src/components/css-transformer';
 import { Font } from 'src/types';
-import { getResolvedOptions } from 'src/default-options';
+import { getResolvedOptions } from 'src/components/default-options';
 import { describe, expect, it } from 'vitest';
 
 describe('css transformer', () => {

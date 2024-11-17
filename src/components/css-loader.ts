@@ -1,6 +1,6 @@
 import { URL } from 'node:url';
 import CleanCss from 'clean-css';
-import { Options } from './types';
+import { Options } from '../types';
 import { FileCache } from './file-cache';
 import { Downloader } from './downloader';
 import { Logger } from './logger';
