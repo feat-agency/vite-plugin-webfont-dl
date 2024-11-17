@@ -8,6 +8,7 @@ const defaultOptions: Required<Options> = {
 	cache: true,
 	proxy: false,
 	assetsSubfolder: '',
+	throwError: false,
 };
 
 export const getResolvedOptions = (options: Options = {}): Required<Options> => {

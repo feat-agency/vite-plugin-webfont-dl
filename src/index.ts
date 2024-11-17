@@ -439,15 +439,20 @@ function viteWebfontDownload(
 					});
 				}
 			} catch (error) {
-				logger.error(
-					colors.red((error as Error).message)
-				);
+				if (options.throwError) {
+					throw error;
+				} else {
+					// Log error only so that Vite build can continue to succeed.
+					logger.error(
+						colors.red((error as Error).message)
+					);
 
-				if (error instanceof AxiosError) {
-					if (error.request instanceof ClientRequest) {
-						logger.error(
-							colors.red(`${error.request.method} ${error.request.protocol}//${error.request.host}${error.request.path}`)
-						);
+					if (error instanceof AxiosError) {
+						if (error.request instanceof ClientRequest) {
+							logger.error(
+								colors.red(`${error.request.method} ${error.request.protocol}//${error.request.host}${error.request.path}`)
+							);
+						}
 					}
 				}
 			}
