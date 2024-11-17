@@ -62,5 +62,10 @@ export interface Options {
 	 * default: `''`
 	 */
 	assetsSubfolder?: string;
-}
 
+	/**
+	 * Throw on error to make Vite build fail.
+	 * default: `false`
+	 */
+	throwError?: boolean;
+}
