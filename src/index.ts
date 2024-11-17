@@ -6,71 +6,69 @@ import { AxiosError } from 'axios';
 import type { Options } from './types';
 import { WebfontDownload } from './webfont-download';
 
-
+/**
+ * A, Build:
+ *    1. [hook] configResolved
+ *       ↳ setBase()
+ *       ↳ setAssetsDir()
+ *       ↳ setMinifyCss()
+ *       ↳ setResolvedLogger()
+ *
+ *    2. [hook] transformIndexHtml
+ *       ↳ htmlFiles collect
+ *
+ *    3. [hook] generateBundle
+ *       ↳ setEmitFileFunction()
+ *       ↳ setGetFilenameFunction()
+ *       ↳ clearWebfontUrlsHtml()
+ *       ↳ collectWebfontsFromHtml()
+ *       ↳ collectWebfontsFromBundleCss()
+ *       ↳ downloadWebfontCss()
+ *       ↳ parseFontDefinitions()
+ *       ↳ downloadFonts()
+ *       ↳ replaceFontUrls()
+ *       ↳ saveCss()
+ *       ↳ removeTagsFromHtml()
+ *       ↳ injectToHtml()
+ *
+ *
+ * B, Dev server:
+ *    1. [hook] configResolved
+ *       ↳ setBase()
+ *       ↳ setAssetsDir()
+ *       ↳ setMinifyCss()
+ *       ↳ setResolvedLogger()
+ *
+ *    2. [hook] configureServer
+ *       ↳ setIsDevServer(true)
+ *       ↳ setAssetsDir('@webfonts')
+ *       ↳ getDevServerMiddlewareCss()
+ *       ↳ getDevServerMiddlewareGeneral()
+ *
+ *    3. [hook] transformIndexHtml
+ *       ↳ clearWebfontUrlsHtml()
+ *       ↳ collectWebfontsFromHtml()
+ *       ↳ removeTagsFromHtml()
+ *       ↳ injectToHtml()
+ *
+ *    4. [middleware] css (@webfonts/webfonts.css)
+ *       ↳ loadDevServerFonts()
+ *         ↳ downloadWebfontCss()
+ *         ↳ parseFontDefinitions()
+ *         ↳ replaceFontUrls()
+ *         ↳ fontUrlsDevMap fill
+ *       ↳ response: css (text)
+ *
+ *    5. [middleware] font (assets/xyz.woff2)
+ *       ↳ check fontUrlsDevMap
+ *       ↳ downloadFont()
+ *       ↳ response: font (binary)
+ */
 
 function viteWebfontDownload(
 	webfontUrls?: string | string[],
 	options?: Options
 ): Plugin {
-	/**
-	 * A, Build:
-	 *    1. [hook] configResolved
-	 *       ↳ setBase()
-	 *       ↳ setAssetsDir()
-	 *       ↳ setMinifyCss()
-	 *       ↳ setResolvedLogger()
-	 *
-	 *    2. [hook] transformIndexHtml
-	 *       ↳ htmlFiles collect
-	 *
-	 *    3. [hook] generateBundle
-	 *       ↳ setEmitFileFunction()
-	 *       ↳ setGetFilenameFunction()
-	 *       ↳ clearWebfontUrlsHtml()
-	 *       ↳ collectWebfontsFromHtml()
-	 *       ↳ collectWebfontsFromBundleCss()
-	 *       ↳ downloadWebfontCss()
-	 *       ↳ parseFontDefinitions()
-	 *       ↳ downloadFonts()
-	 *       ↳ replaceFontUrls()
-	 *       ↳ saveCss()
-	 *       ↳ removeTagsFromHtml()
-	 *       ↳ injectToHtml()
-	 *
-	 *
-	 * B, Dev server:
-	 *    1. [hook] configResolved
-	 *       ↳ setBase()
-	 *       ↳ setAssetsDir()
-	 *       ↳ setMinifyCss()
-	 *       ↳ setResolvedLogger()
-	 *
-	 *    2. [hook] configureServer
-	 *       ↳ setIsDevServer(true)
-	 *       ↳ setAssetsDir('@webfonts')
-	 *       ↳ getDevServerMiddlewareCss()
-	 *       ↳ getDevServerMiddlewareGeneral()
-	 *
-	 *    3. [hook] transformIndexHtml
-	 *       ↳ clearWebfontUrlsHtml()
-	 *       ↳ collectWebfontsFromHtml()
-	 *       ↳ removeTagsFromHtml()
-	 *       ↳ injectToHtml()
-	 *
-	 *    4. [middleware] css (@webfonts/webfonts.css)
-	 *       ↳ loadDevServerFonts()
-	 *         ↳ downloadWebfontCss()
-	 *         ↳ parseFontDefinitions()
-	 *         ↳ replaceFontUrls()
-	 *         ↳ fontUrlsDevMap fill
-	 *       ↳ response: css (text)
-	 *
-	 *    5. [middleware] font (assets/xyz.woff2)
-	 *       ↳ check fontUrlsDevMap
-	 *       ↳ downloadFont()
-	 *       ↳ response: font (binary)
-	 */
-
 	const webfontDl = new WebfontDownload(webfontUrls, options);
 	const htmlFiles: Map<string, string> = new Map<string, string>();
 

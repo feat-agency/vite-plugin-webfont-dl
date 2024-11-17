@@ -14,7 +14,7 @@ import {
 import { Font, FontCollection, Options } from './types';
 import { Connect, Logger as ViteLogger } from 'vite';
 import colors from 'picocolors';
-import { EmitFile, OutputAsset, OutputBundle } from 'rollup';
+import { EmitFile, EmittedAsset, EmittedFile, OutputAsset, OutputBundle } from 'rollup';
 
 export class WebfontDownload {
 	private webfontUrls: Set<string>;
@@ -32,13 +32,14 @@ export class WebfontDownload {
 	private fontLoader: FontLoader;
 	private indexHtmlProcessor: IndexHtmlProcessor;
 
-	private emitFile: EmitFile = () => '';
-	private getFileName: (fileReferenceId: string) => string = () => '';
+	private emitFile: EmitFile = (emittedFile: EmittedFile) => (emittedFile as EmittedAsset).name || 'ref';
+	private getFileName: (fileReferenceId: string) => string = (fileReferenceId) => fileReferenceId;
 
 	private cssFilename = 'webfonts.css';
 	private base = '/';
 	private assetsDir = '';
 	private cssPath = this.cssFilename;
+	private cssPathSaved?: string;
 
 	private isDevServer = false;
 
@@ -281,11 +282,12 @@ export class WebfontDownload {
 	};
 
 	saveCss() {
-		// TODO check overwrite
-		this.cssPath = this.saveFile(
+		this.cssPathSaved = this.saveFile(
 			this.cssFilename,
 			this.cssContent
 		);
+
+		return this.cssPathSaved;
 	}
 
 	saveFile(fileName: string, source: string | Buffer): string {
@@ -308,7 +310,7 @@ export class WebfontDownload {
 
 	injectToHtml(html: string): string {
 		if (this.isDevServer || this.options.injectAsStyleTag === false) {
-			return this.cssInjector.injectAsStylesheet(html, this.base, this.cssPath);
+			return this.cssInjector.injectAsStylesheet(html, this.base, this.cssPathSaved!);
 		}
 
 		return this.cssInjector.injectAsStyleTag(html, this.cssContent);
