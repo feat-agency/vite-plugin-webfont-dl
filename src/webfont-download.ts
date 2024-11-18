@@ -310,7 +310,7 @@ export class WebfontDownload {
 
 	injectToHtml(html: string): string {
 		if (this.isDevServer || this.options.injectAsStyleTag === false) {
-			return this.cssInjector.injectAsStylesheet(html, this.base, this.cssPathSaved!);
+			return this.cssInjector.injectAsStylesheet(html, this.base, this.cssPathSaved || this.cssPath);
 		}
 
 		return this.cssInjector.injectAsStyleTag(html, this.cssContent);
