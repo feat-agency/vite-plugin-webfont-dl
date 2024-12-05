@@ -208,7 +208,7 @@ export class WebfontDownload {
 						`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.css, allWebfontUrls.size))}` :
 						'cache disabled'
 					) +
-				')'),
+					')'),
 				false
 			);
 		}
@@ -254,7 +254,7 @@ export class WebfontDownload {
 					`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.font, this.fonts.size))}` :
 					'cache disabled'
 				) +
-			')'),
+				')'),
 			false
 		);
 	}
@@ -293,6 +293,7 @@ export class WebfontDownload {
 	saveFile(fileName: string, source: string | Buffer): string {
 		const ref = this.emitFile({
 			name: fileName,
+			...fileName.includes('.css') && { fileName: `${this.assetsDir}/${fileName}` },
 			type: 'asset',
 			source: source,
 		});
