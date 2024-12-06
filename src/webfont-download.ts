@@ -293,6 +293,7 @@ export class WebfontDownload {
 	saveFile(fileName: string, source: string | Buffer): string {
 		const ref = this.emitFile({
 			name: fileName,
+			originalFileName: fileName,
 			type: 'asset',
 			source: source,
 		});
