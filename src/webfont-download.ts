@@ -272,10 +272,22 @@ export class WebfontDownload {
 				assetsSubfolder = '';
 			}
 
-			font.localPath = this.base + this.saveFile(
+			const savedPath = this.saveFile(
 				(assetsSubfolder ? `${assetsSubfolder}/` : '') + font.filename,
 				binary
 			);
+
+			if (this.options.injectAsStyleTag) {
+				font.localPath = this.base + savedPath;
+			} else {
+				const assetsDirPrefix = this.assetsDir + '/';
+
+				font.localPath = savedPath;
+
+				if (font.localPath.startsWith(assetsDirPrefix)) {
+					font.localPath = font.localPath.substring(assetsDirPrefix.length);
+				}
+			}
 		} else {
 			font.binary = binary;
 		}
