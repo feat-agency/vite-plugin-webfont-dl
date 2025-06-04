@@ -71,7 +71,7 @@ export class WebfontDownload {
 		this.downloader = new Downloader(this.options, this.logger);
 		this.fileCache = new FileCache(this.options);
 		this.cssLoader = new CssLoader(this.logger, this.downloader, this.fileCache);
-		this.cssParser = new CssParser();
+		this.cssParser = new CssParser(this.options);
 		this.cssTransformer = new CssTransformer(this.options);
 		this.cssInjector = new CssInjector(this.options);
 		this.fontLoader = new FontLoader(this.logger, this.downloader, this.fileCache);

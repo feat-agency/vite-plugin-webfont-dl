@@ -9,6 +9,7 @@ const defaultOptions: Required<Options> = {
 	proxy: false,
 	assetsSubfolder: '',
 	throwError: false,
+	subsetsAllowed: [],
 };
 
 export const getResolvedOptions = (options: Options = {}): Required<Options> => {

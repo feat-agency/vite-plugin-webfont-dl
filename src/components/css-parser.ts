@@ -1,9 +1,10 @@
-import type { Font, FontCollection, ParsedBundleCss } from '../types';
+import type { Font, FontCollection, Options, ParsedBundleCss } from '../types';
 import { createHash } from 'node:crypto';
 
 export class CssParser {
 	private fontSrcRegex = /(?:https?:)?\/\/[-a-z0-9@:%_+.~#?&/=]+\.(?:woff2?|eot|ttf|otf|svg)/gi;
 	private googleFontsKitSrcRegex = /https:\/\/fonts\.gstatic\.com\/l\/font\?kit=[a-z0-9&=_-]+/gi;
+	private fontFaceWithSubsetCommentRegex = /\/\*(.*?)\*\/\s*@font-face\s*{[^}]*}/gi;
 
 	private fontFilenameRegex = /[^/]+\.(?:woff2?|eot|ttf|otf|svg)/i;
 	private googleFontsFileRegex = /\?kit=([a-z0-9_-]+)/i;
@@ -17,8 +18,26 @@ export class CssParser {
 		/https:\/\/api\.fontshare\.com\//i,
 	];
 
+	constructor(
+		private options: Required<Options>,
+	) {}
+
 	public parse(cssContent: string, base: string, assetsDir: string): { cssContent: string; fonts: FontCollection } {
 		const fonts: FontCollection = new Map();
+
+		if (this.options.subsetsAllowed.length) {
+			let newCssContent = '';
+
+			const fontFaceWithSubsetCommentMatches = cssContent.matchAll(this.fontFaceWithSubsetCommentRegex);
+
+			for (const fontFaceWithSubsetCommentMatch of fontFaceWithSubsetCommentMatches) {
+				if (this.options.subsetsAllowed.includes(fontFaceWithSubsetCommentMatch[1].trim())) {
+					newCssContent += fontFaceWithSubsetCommentMatch[0].trim() + '\n';
+				}
+			}
+
+			cssContent = newCssContent.trim();
+		}
 
 		const fontSrcMatches = cssContent.matchAll(this.fontSrcRegex);
 		const googleFontsKitSrcMatches = cssContent.matchAll(this.googleFontsKitSrcRegex);
