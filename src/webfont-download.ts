@@ -70,7 +70,7 @@ export class WebfontDownload {
 		this.logger = new Logger();
 		this.downloader = new Downloader(this.options, this.logger);
 		this.fileCache = new FileCache(this.options);
-		this.cssLoader = new CssLoader(this.options, this.logger, this.downloader, this.fileCache);
+		this.cssLoader = new CssLoader(this.logger, this.downloader, this.fileCache);
 		this.cssParser = new CssParser();
 		this.cssTransformer = new CssTransformer(this.options);
 		this.cssInjector = new CssInjector(this.options);
@@ -169,11 +169,6 @@ export class WebfontDownload {
 					});
 
 					(bundle[path] as OutputAsset).source = bundleCssContent;
-
-					this.cssContent = this.cssLoader.formatCss(
-						this.cssContent,
-						this.isDevServer
-					);
 				}
 			}
 		}
@@ -195,7 +190,7 @@ export class WebfontDownload {
 		]);
 
 		if (allWebfontUrls.size) {
-			this.cssContent += await this.cssLoader.loadAll(allWebfontUrls, this.isDevServer);
+			this.cssContent += await this.cssLoader.loadAll(allWebfontUrls);
 		}
 
 		if (!this.isDevServer) {
@@ -217,13 +212,15 @@ export class WebfontDownload {
 	}
 
 	parseFontDefinitions = (): void => {
-		const parsedFonts = this.cssParser.parse(
+		const parseResult = this.cssParser.parse(
 			this.cssContent,
 			this.base,
 			this.assetsDir
 		);
 
-		parsedFonts.forEach((font: Font) => {
+		this.cssContent = parseResult.cssContent;
+
+		parseResult.fonts.forEach((font: Font) => {
 			this.fonts.set(font.filename, font);
 		});
 	};
@@ -317,6 +314,10 @@ export class WebfontDownload {
 		this.cssContent = this.cssTransformer.transform(this.cssContent, this.fonts);
 	};
 
+	formatCss = () => {
+		this.cssContent = this.cssTransformer.formatCss(this.cssContent, this.isDevServer);
+	};
+
 	removeTagsFromHtml(html: string) {
 		return this.indexHtmlProcessor.removeTags(html);
 	}
@@ -333,6 +334,7 @@ export class WebfontDownload {
 		await this.downloadWebfontCss();
 		this.parseFontDefinitions();
 		this.replaceFontUrls();
+		this.formatCss();
 
 		// create fonts map
 		this.fontUrlsDevMap.clear();

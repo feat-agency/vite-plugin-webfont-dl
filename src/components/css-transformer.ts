@@ -1,3 +1,4 @@
+import CleanCSS from 'clean-css';
 import type { Font, FontCollection, FontExtension, Options } from '../types';
 
 enum FontMime {
@@ -34,6 +35,18 @@ export class CssTransformer {
 
 
 		return cssContent;
+	}
+
+	public formatCss(cssContent: string, isDevServer?: boolean): string {
+		if (!isDevServer && this.options.minifyCss) {
+			return this.minify(cssContent);
+		}
+
+		return cssContent.trim();
+	}
+
+	public minify(cssContent: string) {
+		return new CleanCSS().minify(cssContent).styles;
 	}
 
 	private getFontMime(font: Font): string {

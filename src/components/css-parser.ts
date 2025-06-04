@@ -17,7 +17,7 @@ export class CssParser {
 		/https:\/\/api\.fontshare\.com\//i,
 	];
 
-	public parse(cssContent: string, base: string, assetsDir: string): FontCollection {
+	public parse(cssContent: string, base: string, assetsDir: string): { cssContent: string; fonts: FontCollection } {
 		const fonts: FontCollection = new Map();
 
 		const fontSrcMatches = cssContent.matchAll(this.fontSrcRegex);
@@ -62,7 +62,10 @@ export class CssParser {
 			}
 		}
 
-		return fonts;
+		return {
+			cssContent: cssContent,
+			fonts: fonts,
+		};
 	}
 
 
@@ -80,9 +83,9 @@ export class CssParser {
 
 		fontFaces.forEach((match) => {
 			const fontFace = match[0];
-			const parsedFonts = this.parse(fontFace, base, assetsDir);
+			const parseResult = this.parse(fontFace, base, assetsDir);
 
-			parsedFonts.forEach((font: Font) => {
+			parseResult.fonts.forEach((font: Font) => {
 				if (this.webfontProviders.some((regex) => regex.test(font.url))) {
 					fonts.set(font.filename, font);
 					matchedCssParts.push(match[0]);

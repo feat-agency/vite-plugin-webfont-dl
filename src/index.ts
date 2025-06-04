@@ -27,6 +27,7 @@ import { WebfontDownload } from './webfont-download';
  *       ↳ parseFontDefinitions()
  *       ↳ downloadFonts()
  *       ↳ replaceFontUrls()
+ *       ↳ formatCss()
  *       ↳ saveCss()
  *       ↳ removeTagsFromHtml()
  *       ↳ injectToHtml()
@@ -56,6 +57,7 @@ import { WebfontDownload } from './webfont-download';
  *         ↳ downloadWebfontCss()
  *         ↳ parseFontDefinitions()
  *         ↳ replaceFontUrls()
+ *         ↳ formatCss()
  *         ↳ fontUrlsDevMap fill
  *       ↳ response: css (text)
  *
@@ -157,6 +159,7 @@ function viteWebfontDownload(
 					await webfontDl.downloadFonts();
 
 					webfontDl.replaceFontUrls();
+					webfontDl.formatCss();
 
 					if (!webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size) {
 						webfontDl.saveCss();
