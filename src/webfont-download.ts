@@ -198,10 +198,14 @@ export class WebfontDownload {
 				colors.green('✓') + ' ' +
 				allWebfontUrls.size.toString() + ' webfont css downloaded. ' +
 				colors.dim('(' +
-					colors.bold(this.toDuration(started)) + ', ' +
-					(this.options.cache !== false ?
-						`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.css, allWebfontUrls.size))}` :
-						'cache disabled'
+					colors.bold(this.toDuration(started)) +
+					(allWebfontUrls.size ? (
+						', ' + (
+							this.options.cache !== false ?
+								`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.css, allWebfontUrls.size))}` :
+								'cache disabled'
+							)
+						) : ''
 					) +
 				')'),
 				false
@@ -247,9 +251,13 @@ export class WebfontDownload {
 			this.fonts.size + ' webfonts downloaded. ' +
 			colors.dim('(' +
 				colors.bold(this.toDuration(started)) + ', ' +
-				(this.options.cache !== false ?
-					`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.font, this.fonts.size))}` :
-					'cache disabled'
+				(this.fonts.size ? (
+					', ' +
+						(this.options.cache !== false ?
+							`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.font, this.fonts.size))}` :
+							'cache disabled'
+						)
+					) : ''
 				) +
 			')'),
 			false
