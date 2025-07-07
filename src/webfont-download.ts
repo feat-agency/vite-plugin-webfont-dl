@@ -392,6 +392,10 @@ export class WebfontDownload {
 	}
 
 	private toPercent(value: number, total: number): string {
-		return (Math.round(value / total * 100 * 100) / 100).toFixed(2) + '%';
+		const percent = total > 0
+			? (Math.round(value / total * 100 * 100) / 100).toFixed(2)
+			: '100';
+
+		return `${percent}%`;
 	}
 }
