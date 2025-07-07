@@ -70,8 +70,8 @@ export interface Options {
 	throwError?: boolean;
 
 	/**
-	 * Allow to use only specific font subsets (e.g. `['latin', 'latin-ext']`).
-	 * If not set, all subsets will be allowed.
+	 * Restrict to specific font subsets if supported by the font provider (e.g., `['latin', 'latin-ext']`).
+	 * If not set, all subsets are allowed.
 	 * default: `[]`
 	 */
 	subsetsAllowed?: string[];
