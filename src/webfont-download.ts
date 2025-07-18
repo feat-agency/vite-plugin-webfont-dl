@@ -250,7 +250,7 @@ export class WebfontDownload {
 			colors.green('✓') + ' ' +
 			this.fonts.size + ' webfonts downloaded. ' +
 			colors.dim('(' +
-				colors.bold(this.toDuration(started)) + ', ' +
+				colors.bold(this.toDuration(started)) +
 				(this.fonts.size ? (
 					', ' +
 						(this.options.cache !== false ?
