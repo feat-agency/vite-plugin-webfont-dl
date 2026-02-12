@@ -134,8 +134,11 @@ To use with the [Laravel Vite Plugin](https://laravel.com/docs/vite), add this l
   Inject webfonts as a `<style>` tag (embedded CSS) or as an external `.css` file.
 
 - **`async`** <small>(`boolean`, default: `true`)</small>
-  Prevents the use of inline event handlers that can cause Content Security Policy issues.
-  ⚠️ Only applicable when `injectAsStyleTag: false`.
+  Controls CSS loading behavior (only applicable when `injectAsStyleTag: false`):
+  - `true`: Async loading with `media="print"` trick (faster, but uses inline event handlers)
+  - `false`: Standard blocking CSS loading (CSP-compliant, no inline scripts)
+
+  ⚠️ **For Chrome extensions or strict CSP environments, set `async: false` to avoid CSP violations.**
 
 #### Build Options
 - **`minifyCss`** <small>(`boolean`, default: *value of* `build.minify`)</small>
