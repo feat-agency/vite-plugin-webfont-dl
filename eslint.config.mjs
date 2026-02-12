@@ -35,7 +35,7 @@ export default [{
 		sourceType: "commonjs",
 
 		parserOptions: {
-			tsconfigRootDir: ".",
+			tsconfigRootDir: __dirname,
 			project: true,
 		},
 	},

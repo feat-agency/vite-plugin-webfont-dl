@@ -294,8 +294,8 @@ For minified HTML, injects without extra whitespace.
 ### Test Structure
 - **Location**: `test/` directory
 - **Fixtures**: `test/fixtures/` contains sample HTML and CSS files
-- **Framework**: Vitest
-- **Configuration**: `vitest.config.ts` sets test directory
+- **Framework**: Vitest 4
+- **Configuration**: `vitest.config.ts` sets test directory and `src/` alias for imports
 
 ### Test Categories
 1. **Component tests**: Each component has dedicated test file
