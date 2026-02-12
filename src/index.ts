@@ -81,6 +81,7 @@ function viteWebfontDownload(
 		configResolved(resolvedConfig: ResolvedConfig) {
 			webfontDl.setBase(resolvedConfig.base);
 			webfontDl.setAssetsDir(resolvedConfig.build.assetsDir);
+			webfontDl.setCacheDir(resolvedConfig.cacheDir);
 
 			if (resolvedConfig.build.minify === false && !webfontDl.getOptions().minifyCss) {
 				webfontDl.setMinifyCss(false);

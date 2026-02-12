@@ -98,6 +98,10 @@ export class WebfontDownload {
 		this.cssPath = assetsDir + '/' + this.cssFilename;
 	}
 
+	setCacheDir(cacheDir: string) {
+		this.fileCache.setCacheDir(cacheDir);
+	}
+
 	getCssPath() {
 		return this.cssPath;
 	}

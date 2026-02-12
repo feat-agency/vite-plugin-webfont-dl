@@ -13,6 +13,7 @@ export class FileCache {
 	private enabled = true;
 	private cacheID = `plugin-webfont-dl_${version}.json`;
 	private cache: FlatCache;
+	private cacheDir = 'node_modules/.vite/cache';
 
 	public hits = {
 		css: 0,
@@ -26,11 +27,22 @@ export class FileCache {
 
 		this.cache = cacheCreate({
 			cacheId: this.cacheID,
-			cacheDir: 'node_modules/.vite/cache',
+			cacheDir: this.cacheDir,
 		});
 
 		if (!this.enabled) {
 			this.clear();
+		}
+	}
+
+	setCacheDir(cacheDir: string) {
+		// Only reinitialize if cache directory changes
+		if (this.cacheDir !== cacheDir) {
+			this.cacheDir = cacheDir;
+			this.cache = cacheCreate({
+				cacheId: this.cacheID,
+				cacheDir: this.cacheDir,
+			});
 		}
 	}
 

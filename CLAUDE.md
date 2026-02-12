@@ -178,7 +178,10 @@ The plugin uses a component-based architecture with single-responsibility classe
 **Purpose**: Persistent file-based cache for CSS and fonts
 
 **Key implementation details:**
-- **Cache location**: `node_modules/.vite/cache/`
+- **Cache location**: Respects Vite's `cacheDir` configuration (defaults to `node_modules/.vite/cache/`)
+  - Directory is set via `setCacheDir()` method called in `configResolved` hook
+  - Supports custom cache locations (e.g., `.yarn/.cache` for Yarn PnP)
+  - Cache is reinitialized if directory changes
 - **Cache versioning**: Filename includes plugin version (`plugin-webfont-dl_${version}.json`)
   - Automatically invalidates cache when plugin updates
   - Prevents issues from format changes between versions
