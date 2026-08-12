@@ -292,6 +292,38 @@ The injector preserves HTML indentation for aesthetic reasons:
 ```
 For minified HTML, injects without extra whitespace.
 
+### Known Bugs Fixed
+
+#### Issue #73: Extra CSS in Output (Fixed in v3.11.2)
+**Problem**: When extracting `@import` URLs from CSS, the regex captured the closing parenthesis as part of the URL:
+- `@import url(https://fonts.googleapis.com/font.css);`
+- Captured: `https://fonts.googleapis.com/font.css)` ← extra `)`
+
+**Result**: The malformed URL returned a 404 error page from Google Fonts (HTML with CSS styles), which the plugin then extracted and injected into the output, causing unwanted `code`, `html`, `body`, `.projectLogo` styles to appear.
+
+**Fix**: Updated regex in `css-parser.ts` line 97 to exclude `)` from URL capture:
+```typescript
+// Before: ([^\s'"]+)
+// After:  ([^\s'")]+)
+```
+
+#### Issue #84: Chrome Extension CSP Violations (Documented)
+**Problem**: Chrome extensions enforce strict Content Security Policy that prohibits inline event handlers. The plugin's async CSS injection uses `onload="this.onload=null;this.removeAttribute('media');"` which violates CSP.
+
+**Solution**: The plugin already supports CSP-compliant mode! Set `async: false` to use `injectSync()` which has no inline handlers.
+
+**Configuration for Chrome Extensions**:
+```javascript
+webfontDownload([], {
+  injectAsStyleTag: false,
+  async: false,  // CSP-compliant, no inline event handlers
+})
+```
+
+**Alternative**: Use `injectAsStyleTag: true` to inline CSS as a `<style>` tag (also CSP-compliant).
+
+**Testing**: Added comprehensive tests in `test/css-parser-import-bug.test.ts` to verify all `@import` syntax variants work correctly.
+
 ## Testing
 
 ### Test Structure
@@ -376,11 +408,16 @@ Multiple export names for flexibility:
 
 ### TypeScript Configuration
 - **Target**: ES2018
-- **Module**: ESNext with Node resolution
+- **Module**: ESNext with bundler resolution (required for Vite 8's exports-only package)
 - **Strict mode**: Enabled with strict null checks
 - **noUnusedLocals**: Enforced for clean code
 - **Include**: `src/`, `test/`, config files
 - **Exclude**: `dist/`
+
+### Vite 8 / Rolldown Compatibility
+- Vite 8 is rolldown-based; its plugin hook types differ from rollup's
+- **Never import types from `rollup`** — use the minimal structural types in `src/types.d.ts` (`EmittedAsset`, `EmitFile`, `OutputAsset`, `OutputBundle`), which are compatible with both rollup (Vite ≤7) and rolldown (Vite 8+)
+- `dist/index.d.ts` must only reference the `Plugin` type from `vite`, so consumers on any Vite version (2–8) can type-check
 
 ## Important Patterns and Conventions
 

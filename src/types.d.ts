@@ -1,5 +1,25 @@
 import { AxiosProxyConfig } from 'axios';
 
+/**
+ * Minimal structural types for bundle interaction,
+ * compatible with both Rollup (Vite ≤7) and Rolldown (Vite 8+).
+ */
+export interface EmittedAsset {
+	type: 'asset';
+	name?: string;
+	fileName?: string;
+	originalFileName?: string;
+	source: string | Uint8Array;
+}
+
+export type EmitFile = (emittedFile: EmittedAsset) => string;
+
+export interface OutputAsset {
+	source: string | Uint8Array;
+}
+
+export type OutputBundle = Record<string, unknown>;
+
 export type FontExtension = 'woff2' | 'woff' | 'ttf' | 'otf' | 'svg' | 'eot';
 
 export interface Font {

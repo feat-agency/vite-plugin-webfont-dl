@@ -11,10 +11,9 @@ import {
 	FontLoader,
 	IndexHtmlProcessor,
 } from './components';
-import { Font, FontCollection, Options } from './types';
+import { EmitFile, EmittedAsset, Font, FontCollection, Options, OutputAsset, OutputBundle } from './types';
 import { Connect, Logger as ViteLogger } from 'vite';
 import colors from 'picocolors';
-import { EmitFile, EmittedAsset, EmittedFile, OutputAsset, OutputBundle } from 'rollup';
 
 export class WebfontDownload {
 	private webfontUrls: Set<string>;
@@ -32,7 +31,7 @@ export class WebfontDownload {
 	private fontLoader: FontLoader;
 	private indexHtmlProcessor: IndexHtmlProcessor;
 
-	private emitFile: EmitFile = (emittedFile: EmittedFile) => (emittedFile as EmittedAsset).name || 'ref';
+	private emitFile: EmitFile = (emittedFile: EmittedAsset) => emittedFile.name || 'ref';
 	private getFileName: (fileReferenceId: string) => string = (fileReferenceId) => fileReferenceId;
 
 	private cssFilename = 'webfonts.css';

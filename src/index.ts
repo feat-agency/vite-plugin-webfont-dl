@@ -1,9 +1,8 @@
 import { ClientRequest, ServerResponse } from 'node:http';
-import { EmittedFile, NormalizedOutputOptions, OutputAsset, OutputBundle } from 'rollup';
 import type { Connect, IndexHtmlTransformContext, Plugin, ResolvedConfig, ViteDevServer } from 'vite';
 import colors from 'picocolors';
 import { AxiosError } from 'axios';
-import type { Options } from './types';
+import type { EmittedAsset, Options, OutputAsset, OutputBundle } from './types';
 import { WebfontDownload } from './webfont-download';
 
 /**
@@ -136,9 +135,9 @@ function viteWebfontDownload(
 			return html;
 		},
 
-		async generateBundle(options: NormalizedOutputOptions, bundle: OutputBundle) {
+		async generateBundle(options: unknown, bundle: OutputBundle) {
 			webfontDl.setEmitFileFunction(
-				(emittedFile: EmittedFile) => this.emitFile(emittedFile)
+				(emittedFile: EmittedAsset) => this.emitFile(emittedFile)
 			);
 
 			webfontDl.setGetFilenameFunction(

@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"lib": [
 			"es2021"
 		],
@@ -19,7 +19,7 @@
 	"include": [
 		"src",
 		"test",
-		"vite.config.ts",
+		"vitest.config.ts",
 		"tsup.config.ts"
 	],
 	"exclude": [
