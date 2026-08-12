@@ -21,4 +21,15 @@ jobs:
       - run: npm run test
       - run: npm run lint
       - run: npm run build
+      # guard: never publish a tarball without the built dist files (see v3.13.0)
+      - run: |
+          npm pack --dry-run --json | node -e "
+            const json = JSON.parse(require('fs').readFileSync(0, 'utf8'));
+            const pkg = Array.isArray(json) ? json[0] : Object.values(json)[0];
+            const files = pkg.files.map(f => f.path);
+            const required = ['dist/index.js', 'dist/index.mjs', 'dist/index.d.ts'];
+            const missing = required.filter(f => !files.includes(f));
+            if (missing.length) { console.error('Tarball is missing:', missing.join(', ')); process.exit(1); }
+            console.log('Tarball OK:', files.join(', '));
+          "
       - run: npm publish
