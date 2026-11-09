@@ -1,4 +1,4 @@
-import type { Font, FontCollection, Options, ParsedBundleCss } from '../types';
+import type { BundleCssImport, Font, FontCollection, Options, ParsedBundleCss } from '../types';
 import { createHash } from 'node:crypto';
 
 export class CssParser {
@@ -94,6 +94,7 @@ export class CssParser {
 		const webfontUrlsCss = new Set<string>([]);
 		const matchedCssParts: string[] = [];
 		const matchedFontFaces: string[] = [];
+		const matchedImports: BundleCssImport[] = [];
 
 		const importRegex = /@import\s*(?:url\()?['"]?([^\s'")]+)['"]?\)?;/g;
 		const fontFaceRegex = /@font-face\s*{[^}]*}/g;
@@ -128,6 +129,7 @@ export class CssParser {
 			if (this.webfontProviders.some((regex) => regex.test(url))) {
 				webfontUrlsCss.add(url);
 				matchedCssParts.push(match[0]);
+				matchedImports.push({ url, statement: match[0] });
 			}
 		});
 
@@ -136,6 +138,7 @@ export class CssParser {
 			webfontUrlsCss,
 			matchedCssParts,
 			fontFaces: matchedFontFaces,
+			imports: matchedImports,
 		};
 	}
 }

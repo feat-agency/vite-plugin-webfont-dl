@@ -140,4 +140,42 @@ describe('index.html processor', () => {
 		expect(htmlBefore).contains(stylesheetTag);
 		expect(htmlAfter).not.contains(stylesheetTag);
 	});
+
+	describe('keeping the tags of failed urls', () => {
+		const goodUrl = 'https://fonts.googleapis.com/css2?family=Good';
+		const failedUrl = 'https://fonts.googleapis.com/css2?family=Failed';
+
+		const html = [
+			'<head>',
+			'  <link rel="preconnect" href="https://fonts.googleapis.com">',
+			`  <link href="${goodUrl}" rel="stylesheet">`,
+			`  <link rel="stylesheet" href="${failedUrl}">`,
+			'  <title>x</title>',
+			'</head>',
+		].join('\n');
+
+		it('should remove everything by default', () => {
+			expect((new IndexHtmlProcessor()).removeTags(html)).eq('<head>\n  <title>x</title>\n</head>');
+		});
+
+		it('should keep the tag of a failed url and the preconnect hints', () => {
+			expect((new IndexHtmlProcessor()).removeTags(html, new Set([failedUrl]))).eq([
+				'<head>',
+				'  <link rel="preconnect" href="https://fonts.googleapis.com">',
+				`  <link rel="stylesheet" href="${failedUrl}">`,
+				'  <title>x</title>',
+				'</head>',
+			].join('\n'));
+		});
+
+		it('should remove the preconnect hints when the failed url has no tag in the html', () => {
+			expect(
+				(new IndexHtmlProcessor()).removeTags(html, new Set(['https://fonts.googleapis.com/css2?family=Elsewhere']))
+			).eq('<head>\n  <title>x</title>\n</head>');
+		});
+
+		it('should behave the same with an empty set', () => {
+			expect((new IndexHtmlProcessor()).removeTags(html, new Set())).eq((new IndexHtmlProcessor()).removeTags(html));
+		});
+	});
 });

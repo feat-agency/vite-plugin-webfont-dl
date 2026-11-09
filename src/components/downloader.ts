@@ -62,11 +62,19 @@ export class Downloader {
 		}
 	}
 
-	// client errors (e.g. 400, 404) are permanent, retrying them only slows down the build
-	private isRetryable(err: unknown): boolean {
+	/**
+	 * The server refused this one file (4xx, e.g. 400, 404): the problem is the file, not the connection.
+	 * Server / proxy errors (5xx), timeouts and rate limits (408, 429) are not permanent.
+	 */
+	public static isRefused(err: unknown): boolean {
 		const status = isAxiosError(err) ? err.response?.status : undefined;
 
-		return status === undefined || status >= 500 || status === 408 || status === 429;
+		return status !== undefined && status >= 400 && status < 500 && status !== 408 && status !== 429;
+	}
+
+	// client errors (e.g. 400, 404) are permanent, retrying them only slows down the build
+	private isRetryable(err: unknown): boolean {
+		return !Downloader.isRefused(err);
 	}
 
 	private toRequest(url: string, responseType?: ResponseType) {

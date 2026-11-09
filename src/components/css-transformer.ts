@@ -19,7 +19,10 @@ export class CssTransformer {
 		cssContent: string,
 		fonts: FontCollection
 	): string {
-		fonts.forEach((font: Font) => {
+		// longest url first: an url can be the prefix of another one (`font.woff` / `font.woff2`)
+		const sortedFonts = [...fonts.values()].sort((a, b) => b.url.length - a.url.length);
+
+		sortedFonts.forEach((font: Font) => {
 			if (!this.options.embedFonts || !font.binary) {
 				cssContent = cssContent.replaceAll(font.url, font.localPath);
 			} else if (font.binary) {
@@ -50,9 +53,15 @@ export class CssTransformer {
 	}
 
 	private getFontMime(font: Font): string {
-		const extension = font.filename.replace(/^.+\.(.+)$/, '$1') as FontExtension;
-
-		return FontMime[extension];
+		return getFontMime(font.filename);
 	}
 }
+
+export const getFontMime = (filename: string): string => {
+	const extension = filename.replace(/[?#].*$/, '').replace(/^.+\.(.+)$/, '$1').toLowerCase() as FontExtension;
+
+	const mime: string | undefined = FontMime[extension];
+
+	return mime ?? FontMime.woff2;
+};
 

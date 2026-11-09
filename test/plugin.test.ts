@@ -1,5 +1,8 @@
-import { AxiosError } from 'axios';
+import { AxiosError, type AxiosResponse } from 'axios';
+import { mkdtempSync } from 'node:fs';
 import type { ServerResponse } from 'node:http';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { Connect } from 'vite';
 import { Downloader } from 'src/components';
 import viteWebfontDownload from 'src/index';
@@ -49,10 +52,22 @@ interface BuildConfig {
 	ssr?: boolean | string;
 }
 
+// the server answered with an error status
+const httpError = (status: number) => new AxiosError(
+	`Request failed with status code ${status}`,
+	'ERR_BAD_REQUEST',
+	undefined,
+	undefined,
+	{ status } as AxiosResponse,
+);
+
+const cacheDir = mkdtempSync(join(tmpdir(), 'webfont-dl-test-'));
+
 const setup = (
 	webfontUrls: string | string[] = [],
 	options: Options = {},
 	build: BuildConfig = {},
+	base = '/',
 ) => {
 	const plugin = viteWebfontDownload(webfontUrls, { cache: false, ...options }) as unknown as Hooks;
 	const emitted = new Map<string, string | Uint8Array>();
@@ -67,8 +82,8 @@ const setup = (
 	};
 
 	plugin.configResolved({
-		base: '/',
-		cacheDir: 'node_modules/.vite',
+		base,
+		cacheDir,
 		logger: { info: vi.fn(), error: vi.fn() },
 		build: { assetsDir: 'assets', minify: 'oxc', ssr: false, ...build },
 	});
@@ -325,6 +340,504 @@ describe('plugin (build)', () => {
 		});
 	});
 
+	describe('refused files (http errors)', () => {
+		const refusedCssUrl = 'https://fonts.googleapis.com/css2?family=Refused';
+
+		const htmlWithLinks = `<!doctype html>
+<html>
+	<head>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link href="${googleCssUrl}" rel="stylesheet">
+		<link href="${refusedCssUrl}" rel="stylesheet">
+	</head>
+	<body></body>
+</html>
+`;
+
+		beforeEach(() => {
+			download.mockImplementation((url: string) => {
+				if (url === googleCssUrl) {
+					return Promise.resolve({ data: googleCss }) as never;
+				}
+
+				if (url === refusedCssUrl || url === interCyrillicUrl) {
+					return Promise.reject(httpError(404)) as never;
+				}
+
+				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
+			});
+		});
+
+		it('should self-host the other webfont css and keep the refused one on the provider', async () => {
+			const { plugin, emitted, run } = setup([], { subsetsAllowed: ['latin'] });
+
+			plugin.transformIndexHtml(htmlWithLinks, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: htmlWithLinks } });
+			const source = bundle['index.html'].source as string;
+
+			expect(source).contain('url(/assets/inter-latin.woff2)');
+			expect(source).not.contain(`<link href="${googleCssUrl}"`);
+			expect(emitted.has('inter-latin.woff2')).eq(true);
+
+			// the refused tag stays, with its preconnect hint
+			expect(source).contain(`<link href="${refusedCssUrl}" rel="stylesheet">`);
+			expect(source).contain('<link rel="preconnect" href="https://fonts.googleapis.com">');
+		});
+
+		it('should remove the preconnect hints when the refused url is not in the html', async () => {
+			const page = htmlWithLinks.replace(`\t\t<link href="${refusedCssUrl}" rel="stylesheet">\n`, '');
+			const { plugin, run } = setup(refusedCssUrl, { subsetsAllowed: ['latin'] });
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: page } });
+			const source = bundle['index.html'].source as string;
+
+			expect(source).contain('url(/assets/inter-latin.woff2)');
+			expect(source).not.contain('preconnect');
+			expect(source).not.contain('fonts.googleapis.com');
+		});
+
+		it('should keep the @import of a refused url in the bundled css', async () => {
+			const css = `@import url('${refusedCssUrl}');@import url('${googleCssUrl}');body{color:red}`;
+			const { plugin, run } = setup([], { subsetsAllowed: ['latin'] });
+
+			plugin.transformIndexHtml(html, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: html },
+				'assets/index.css': { source: css },
+			});
+
+			expect(bundle['assets/index.css'].source).eq(`@import url('${refusedCssUrl}');body{color:red}`);
+			expect(bundle['index.html'].source).contain('url(/assets/inter-latin.woff2)');
+		});
+
+		it('should keep a refused font on the provider', async () => {
+			const { plugin, emitted, run } = setup(googleCssUrl);
+
+			plugin.transformIndexHtml(html, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: html } });
+			const source = bundle['index.html'].source as string;
+
+			expect(source).contain('url(/assets/inter-latin.woff2)');
+			expect(source).contain(`url(${interCyrillicUrl})`);
+			expect([...emitted.keys()]).deep.eq(['inter-latin.woff2']);
+		});
+
+		it('should change nothing when every webfont css is refused', async () => {
+			const page = htmlWithLinks.replace(`\t\t<link href="${googleCssUrl}" rel="stylesheet">\n`, '');
+			const css = `@import url('${refusedCssUrl}');body{color:red}`;
+			const { plugin, emitted, run } = setup(refusedCssUrl);
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: page },
+				'assets/index.css': { source: css },
+			});
+
+			expect(bundle['index.html'].source).eq(page);
+			expect(bundle['assets/index.css'].source).eq(css);
+			expect(emitted.size).eq(0);
+		});
+
+		it('should fail the build when `throwError` is set', async () => {
+			const { run } = setup([googleCssUrl, refusedCssUrl], { throwError: true });
+
+			await expect(run({})).rejects.toThrow(/404/);
+		});
+
+		it('should fail the build on a refused font when `throwError` is set', async () => {
+			const { run } = setup(googleCssUrl, { throwError: true });
+
+			await expect(run({})).rejects.toThrow(/404/);
+		});
+
+		it('should treat server errors (5xx) and rate limits like network errors', async () => {
+			for (const status of [500, 503, 429, 408]) {
+				download.mockImplementation((url: string) => {
+					if (url === googleCssUrl) {
+						return Promise.resolve({ data: googleCss }) as never;
+					}
+
+					return Promise.reject(httpError(status)) as never;
+				});
+
+				const { plugin, emitted, run } = setup(googleCssUrl);
+
+				plugin.transformIndexHtml(html, { path: '/index.html' });
+
+				const bundle = await run({ 'index.html': { source: html } });
+
+				// all or nothing, as before
+				expect(bundle['index.html'].source, `status ${status}`).eq(html);
+				expect(emitted.has('webfonts.css')).eq(false);
+			}
+		});
+	});
+
+	describe('network errors', () => {
+		it('should change nothing when a font can not be reached', async () => {
+			download.mockImplementation((url: string) => {
+				if (url === googleCssUrl) {
+					return Promise.resolve({ data: googleCss }) as never;
+				}
+
+				return Promise.reject(new AxiosError('timeout of 2500ms exceeded', 'ECONNABORTED')) as never;
+			});
+
+			const page = html.replace('</head>', `<link href="${googleCssUrl}" rel="stylesheet">\n\t</head>`);
+			const { plugin, emitted, run } = setup();
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: page },
+				'assets/index.css': { source: userCss },
+			});
+
+			expect(bundle['index.html'].source).eq(page);
+			expect(bundle['assets/index.css'].source).eq(userCss);
+			expect(emitted.has('webfonts.css')).eq(false);
+		});
+	});
+
+	describe('cssInPlace', () => {
+		const minifiedLatin = `@font-face{font-family:Inter;src:url(/assets/inter-latin.woff2) format('woff2')}`;
+		const minifiedCyrillic = `@font-face{font-family:Inter;src:url(/assets/inter-cyrillic.woff2) format('woff2')}`;
+
+		it('should replace an @import with the self-hosted webfont css', async () => {
+			const { plugin, emitted, run } = setup([], { cssInPlace: true });
+
+			plugin.transformIndexHtml(html, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: html },
+				'assets/index.css': { source: `@import url('${googleCssUrl}');body{color:red}` },
+			});
+
+			expect(bundle['assets/index.css'].source).eq(`body{color:red}${minifiedCyrillic}${minifiedLatin}`);
+
+			// nothing is injected or saved elsewhere
+			expect(bundle['index.html'].source).eq(html);
+			expect(emitted.has('webfonts.css')).eq(false);
+			expect([...emitted.keys()].sort()).deep.eq(['inter-cyrillic.woff2', 'inter-latin.woff2']);
+		});
+
+		it('should not read `$` in the css as a replacement pattern', async () => {
+			const fontFace = `@font-face{font-family:"$&$1$$";src:url(${lobsterUrl})}`;
+			const { run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({ 'assets/app.css': { source: fontFace + 'body{color:red}' } });
+
+			expect(bundle['assets/app.css'].source).eq(
+				'@font-face{font-family:"$&$1$$";src:url(/assets/lobster.woff2)}body{color:red}'
+			);
+		});
+
+		it('should self-host a @font-face rule where it is', async () => {
+			const { emitted, run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({ 'assets/app.css': { source: userCss } });
+
+			expect(bundle['assets/app.css'].source).eq(
+				'@font-face{font-family:Lobster;src:url(/assets/lobster.woff2)format("woff2")}body{font-family:Inter}h1{font-family:Lobster}'
+			);
+			expect([...emitted.keys()]).deep.eq(['lobster.woff2']);
+		});
+
+		it('should work without any html file', async () => {
+			const { emitted, run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({
+				'assets/app.css': { source: `@import"${googleCssUrl}";${userCss}` },
+			});
+
+			const source = bundle['assets/app.css'].source as string;
+
+			expect(source).not.contain('@import');
+			expect(source).not.contain('fonts.gstatic.com');
+			expect(source).contain('url(/assets/lobster.woff2)');
+			expect(source).contain(minifiedLatin);
+			expect(emitted.has('webfonts.css')).eq(false);
+		});
+
+		it('should keep the remaining @import statements at the top', async () => {
+			const { run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({
+				'assets/app.css': {
+					source: `@import url('${googleCssUrl}');@import url('https://example.com/other.css');body{color:red}`,
+				},
+			});
+
+			expect(bundle['assets/app.css'].source).eq(
+				`@import url('https://example.com/other.css');body{color:red}${minifiedCyrillic}${minifiedLatin}`
+			);
+		});
+
+		it('should use relative urls with a relative base', async () => {
+			const { run } = setup([], { cssInPlace: true }, {}, './');
+
+			const bundle = await run({
+				'assets/app.css': { source: userCss },
+				'style.css': { source: userCss },
+				'assets/nested/deep.css': { source: userCss },
+			});
+
+			expect(bundle['assets/app.css'].source).contain('url(lobster.woff2)');
+			expect(bundle['style.css'].source).contain('url(assets/lobster.woff2)');
+			expect(bundle['assets/nested/deep.css'].source).contain('url(../lobster.woff2)');
+		});
+
+		it('should prefix absolute urls with the base', async () => {
+			const { run } = setup([], { cssInPlace: true }, {}, '/app/');
+
+			const bundle = await run({ 'assets/app.css': { source: userCss } });
+
+			expect(bundle['assets/app.css'].source).contain('url(/app/assets/lobster.woff2)');
+		});
+
+		it('should respect `assetsSubfolder`', async () => {
+			const { run } = setup([], { cssInPlace: true, assetsSubfolder: 'fonts' }, {}, './');
+
+			const bundle = await run({ 'assets/app.css': { source: userCss } });
+
+			expect(bundle['assets/app.css'].source).contain('url(fonts/lobster.woff2)');
+		});
+
+		it('should embed fonts', async () => {
+			const { emitted, run } = setup([], { cssInPlace: true, embedFonts: true });
+
+			const bundle = await run({
+				'assets/app.css': { source: `@import url('${googleCssUrl}');${userCss}` },
+			});
+
+			const source = bundle['assets/app.css'].source as string;
+
+			expect(source.match(/url\(data:font\/woff2;base64,/g)).length(3);
+			expect(source).not.contain('fonts.gstatic.com');
+			expect(emitted.size).eq(0);
+		});
+
+		it('should filter subsets', async () => {
+			const { emitted, run } = setup([], { cssInPlace: true, subsetsAllowed: ['latin'] });
+
+			const bundle = await run({
+				'assets/app.css': { source: `@import url('${googleCssUrl}');${userCss}` },
+			});
+
+			const source = bundle['assets/app.css'].source as string;
+
+			expect(source).contain(minifiedLatin);
+			expect(source).not.contain('cyrillic');
+			expect(source).contain('url(/assets/lobster.woff2)');
+			expect([...emitted.keys()].sort()).deep.eq(['inter-latin.woff2', 'lobster.woff2']);
+		});
+
+		it('should not minify when minification is off', async () => {
+			const { run } = setup([], { cssInPlace: true }, { minify: false });
+
+			const bundle = await run({
+				'assets/app.css': { source: `@import url('${googleCssUrl}');\nbody {\n  color: red;\n}\n` },
+			});
+
+			expect(bundle['assets/app.css'].source).eq(
+				'\nbody {\n  color: red;\n}\n' +
+				googleCss.replace(interCyrillicUrl, '/assets/inter-cyrillic.woff2').replace(interLatinUrl, '/assets/inter-latin.woff2') +
+				'\n'
+			);
+		});
+
+		it('should handle the same @import in several css files', async () => {
+			const css = `@import url('${googleCssUrl}');body{color:red}`;
+			const { run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({
+				'assets/a.css': { source: css },
+				'assets/b.css': { source: css },
+			});
+
+			expect(bundle['assets/a.css'].source).eq(`body{color:red}${minifiedCyrillic}${minifiedLatin}`);
+			expect(bundle['assets/b.css'].source).eq(bundle['assets/a.css'].source);
+		});
+
+		it('should add a repeated @import only once', async () => {
+			const { run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({
+				'assets/a.css': { source: `@import url('${googleCssUrl}');@import"${googleCssUrl}";body{color:red}` },
+			});
+
+			expect(bundle['assets/a.css'].source).eq(`body{color:red}${minifiedCyrillic}${minifiedLatin}`);
+		});
+
+		it('should leave a refused @import untouched', async () => {
+			const refusedCssUrl = 'https://fonts.googleapis.com/css2?family=Refused';
+
+			download.mockImplementation((url: string) => {
+				if (url === googleCssUrl) {
+					return Promise.resolve({ data: googleCss }) as never;
+				}
+
+				if (url === refusedCssUrl) {
+					return Promise.reject(httpError(400)) as never;
+				}
+
+				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
+			});
+
+			const { run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({
+				'assets/app.css': {
+					source: `@import url('${refusedCssUrl}');@import url('${googleCssUrl}');body{color:red}`,
+				},
+			});
+
+			expect(bundle['assets/app.css'].source).eq(
+				`@import url('${refusedCssUrl}');body{color:red}${minifiedCyrillic}${minifiedLatin}`
+			);
+		});
+
+		it('should leave the css untouched when the download fails', async () => {
+			const css = `@import url('https://fonts.googleapis.com/css2?family=Missing');${userCss}`;
+			const { emitted, run } = setup([], { cssInPlace: true });
+
+			const bundle = await run({ 'assets/app.css': { source: css } });
+
+			expect(bundle['assets/app.css'].source).eq(css);
+			expect(emitted.has('webfonts.css')).eq(false);
+		});
+
+		it('should still inject the fonts of html tags and plugin config into the html', async () => {
+			const lobsterCssUrl = 'https://fonts.googleapis.com/css2?family=Lobster';
+
+			download.mockImplementation((url: string) => {
+				if (url === googleCssUrl) {
+					return Promise.resolve({ data: googleCss }) as never;
+				}
+
+				if (url === lobsterCssUrl) {
+					return Promise.resolve({ data: `/* latin */\n@font-face {\n  font-family: 'Lobster';\n  src: url(${lobsterUrl}) format('woff2');\n}` }) as never;
+				}
+
+				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
+			});
+
+			const { plugin, emitted, run } = setup(lobsterCssUrl, { cssInPlace: true, subsetsAllowed: ['latin'] });
+
+			plugin.transformIndexHtml(html, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: html },
+				'assets/index.css': { source: `@import url('${googleCssUrl}');body{color:red}` },
+			});
+
+			// config url -> html
+			expect(bundle['index.html'].source).contain('url(/assets/lobster.woff2)');
+			expect(bundle['index.html'].source).not.contain('inter-latin');
+
+			// @import -> stays in the css file
+			expect(bundle['assets/index.css'].source).eq(`body{color:red}${minifiedLatin}`);
+			expect([...emitted.keys()].sort()).deep.eq(['inter-latin.woff2', 'lobster.woff2']);
+		});
+
+		it('should save the fonts of the plugin config to webfonts.css when there is no html', async () => {
+			const { emitted, run } = setup(googleCssUrl, { cssInPlace: true, subsetsAllowed: ['latin'] });
+
+			const bundle = await run({ 'assets/app.css': { source: userCss } });
+
+			expect(emitted.get('webfonts.css')).eq(minifiedLatin);
+			expect(bundle['assets/app.css'].source).contain('url(/assets/lobster.woff2)');
+		});
+	});
+
+	describe('deterministic output', () => {
+		const page = (url: string) => html.replace('</head>', `<link href="${url}" rel="stylesheet">\n\t</head>`);
+		const lobsterCssUrl = 'https://fonts.googleapis.com/css2?family=Lobster';
+
+		const build = async (order: string[]) => {
+			download.mockImplementation((url: string) => {
+				if (url === googleCssUrl) {
+					return Promise.resolve({ data: googleCss }) as never;
+				}
+
+				if (url === lobsterCssUrl) {
+					return Promise.resolve({ data: `@font-face {\n  font-family: 'Lobster';\n  src: url(${lobsterUrl});\n}` }) as never;
+				}
+
+				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
+			});
+
+			const pages: Record<string, string> = {
+				'index.html': page(googleCssUrl),
+				'about/index.html': page(lobsterCssUrl),
+			};
+
+			const { plugin, emitted, run } = setup();
+
+			// Vite transforms the html files in an arbitrary order
+			order.forEach((path) => plugin.transformIndexHtml(pages[path], { path: '/' + path }));
+
+			const bundle = await run({
+				'index.html': { source: pages['index.html'] },
+				'about/index.html': { source: pages['about/index.html'] },
+			});
+
+			return { html: bundle['index.html'].source as string, emitted: [...emitted.keys()] };
+		};
+
+		it('should not depend on the order the html files are transformed in', async () => {
+			const first = await build(['index.html', 'about/index.html']);
+			const second = await build(['about/index.html', 'index.html']);
+
+			expect(first.html).eq(second.html);
+			expect(first.emitted).deep.eq(second.emitted);
+		});
+	});
+
+	describe('parallel downloads', () => {
+		const fontUrls = Array.from({ length: 20 }, (_, index) => `https://fonts.gstatic.com/s/test/v1/font-${index}.woff2`);
+		const manyFontsCss = fontUrls.map((url, index) => `@font-face{font-family:Test${index};src:url(${url})}`).join('\n');
+
+		it('should download in parallel, with a limit, and emit in the css order', async () => {
+			let running = 0;
+			let maxRunning = 0;
+
+			download.mockImplementation(async (url: string) => {
+				if (url === googleCssUrl) {
+					return { data: manyFontsCss } as never;
+				}
+
+				running++;
+				maxRunning = Math.max(maxRunning, running);
+
+				// later fonts finish first
+				await new Promise((resolve) => setTimeout(resolve, 20 - fontUrls.indexOf(url)));
+
+				running--;
+
+				return { data: Buffer.from('font:' + url) } as never;
+			});
+
+			const { emitted, run } = setup(googleCssUrl);
+
+			await run({});
+
+			expect(maxRunning).greaterThan(1);
+			expect(maxRunning).lessThanOrEqual(6);
+
+			expect([...emitted.keys()]).deep.eq([
+				...fontUrls.map((url) => url.replace(/^.*\//, '')),
+				'webfonts.css',
+			]);
+		});
+	});
+
 	describe('download errors', () => {
 		const missingUrl = 'https://fonts.googleapis.com/css2?family=Missing';
 
@@ -408,6 +921,38 @@ describe('dev server middleware', () => {
 		expect(headers['Content-Type']).eq('font/woff2');
 		expect((response.body as Buffer).toString()).eq('font');
 		expect(next).not.toHaveBeenCalled();
+	});
+
+	it('should send the right content type for every font format', async () => {
+		const css = [
+			'https://fonts.gstatic.com/s/x/icons.svg',
+			'https://fonts.gstatic.com/s/x/legacy.eot',
+			'https://fonts.gstatic.com/s/x/plain.ttf',
+			'https://fonts.gstatic.com/s/x/modern.woff2',
+		].map((url, index) => `@font-face{font-family:F${index};src:url(${url})}`).join('\n');
+
+		vi.spyOn(Downloader.prototype, 'download').mockImplementation((url: string) =>
+			Promise.resolve({ data: url === googleCssUrl ? css : Buffer.from('font') }) as never
+		);
+
+		const webfontDl = await createWebfontDl();
+
+		const contentType = async (path: string) => {
+			const { response, headers } = createResponse();
+
+			await webfontDl.getDevServerMiddlewareGeneral(
+				{ originalUrl: path } as Connect.IncomingMessage,
+				response as unknown as ServerResponse,
+				vi.fn(),
+			);
+
+			return headers['Content-Type'];
+		};
+
+		expect(await contentType('/@webfonts/icons.svg')).eq('image/svg+xml');
+		expect(await contentType('/@webfonts/legacy.eot')).eq('application/vnd.ms-fontobject');
+		expect(await contentType('/@webfonts/plain.ttf')).eq('font/ttf');
+		expect(await contentType('/@webfonts/modern.woff2?v=1')).eq('font/woff2');
 	});
 
 	it('should pass on unknown urls', async () => {
