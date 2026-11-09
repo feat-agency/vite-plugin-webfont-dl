@@ -345,7 +345,7 @@ webfontDownload([], {
 ### Test Structure
 - **Location**: `test/` directory
 - **Fixtures**: `test/fixtures/` contains sample HTML and CSS files
-- **Framework**: Vitest 4
+- **Framework**: Vitest 5
 - **Configuration**: `vitest.config.ts` sets test directory and `src/` alias for imports
 
 ### Test Categories
@@ -412,13 +412,14 @@ Multiple export names for flexibility:
 ## Code Style and Linting
 
 ### ESLint Configuration (eslint.config.mjs)
+- ESLint 10, native flat config built with the `typescript-eslint` package
 - **Extends**:
-  - `eslint:recommended`
-  - `@typescript-eslint/recommended-type-checked`
-  - `@typescript-eslint/stylistic-type-checked`
+  - `js.configs.recommended`
+  - `tseslint.configs.recommendedTypeChecked`
+  - `tseslint.configs.stylisticTypeChecked`
 - **Parser**: TypeScript ESLint parser with type-aware linting
 - **Rules**:
-  - Trailing commas required in multiline constructs
+  - Trailing commas required in multiline arrays, objects, imports and exports (function calls and parameters are not checked)
   - Single quotes preferred
   - Semicolons required
   - Semicolon spacing enforced
@@ -428,7 +429,7 @@ Multiple export names for flexibility:
 - **Target**: ES2018
 - **Module**: ESNext with bundler resolution (required for Vite 8's exports-only package)
 - **Strict mode**: Enabled with strict null checks
-- **TypeScript version**: Pinned to `^5` — tsup 8 injects the deprecated `baseUrl` option into its DTS build, which fails on TypeScript 6
+- **TypeScript version**: `^6` with tsup 9. TypeScript 7 is not supported by typescript-eslint yet
 - **noUnusedLocals**: Enforced for clean code
 - **Include**: `src/`, `test/`, config files
 - **Exclude**: `dist/`
