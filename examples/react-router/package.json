@@ -1,0 +1,27 @@
+{
+	"name": "webfont-dl-example-react-router",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "react-router dev",
+		"build": "react-router build",
+		"start": "react-router-serve ./build/server/index.js"
+	},
+	"dependencies": {
+		"@react-router/node": "^8",
+		"@react-router/serve": "^8",
+		"isbot": "^5",
+		"react": "^19",
+		"react-dom": "^19",
+		"react-router": "^8"
+	},
+	"devDependencies": {
+		"@react-router/dev": "^8",
+		"@types/node": "^22",
+		"@types/react": "^19",
+		"@types/react-dom": "^19",
+		"typescript": "^6",
+		"vite": "^8",
+		"vite-plugin-webfont-dl": "file:../.."
+	}
+}

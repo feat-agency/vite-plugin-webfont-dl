@@ -1,0 +1,19 @@
+{
+	"name": "webfont-dl-example-react",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^19",
+		"react-dom": "^19"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^6",
+		"vite": "^8",
+		"vite-plugin-webfont-dl": "file:../.."
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"name": "webfont-dl-example-vue",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"vue": "^3"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-vue": "^6",
+		"vite": "^8",
+		"vite-plugin-webfont-dl": "file:../.."
+	}
+}

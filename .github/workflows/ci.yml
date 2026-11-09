@@ -30,3 +30,54 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
+  examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - example: vanilla
+            output: dist
+          - example: vue
+            output: dist
+          - example: react
+            output: dist
+          - example: svelte
+            output: dist
+          - example: react-router
+            output: build/client
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: npm install
+        working-directory: examples/${{ matrix.example }}
+      - run: npm run build
+        working-directory: examples/${{ matrix.example }}
+      - run: node check.mjs ${{ matrix.example }}/${{ matrix.output }}
+        working-directory: examples
+  # the vanilla example built with every Vite major of the peer dependency range
+  vite-compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vite: [2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: npm install
+        working-directory: examples/vanilla
+      - run: npm install --no-save vite@${{ matrix.vite }}
+        working-directory: examples/vanilla
+      - run: npm run build
+        working-directory: examples/vanilla
+      - run: node check.mjs vanilla/dist
+        working-directory: examples
