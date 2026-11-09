@@ -505,12 +505,12 @@ describe('plugin (build)', () => {
 		});
 	});
 
-	describe('cssInPlace', () => {
+	describe('fontDefinitionsInCss', () => {
 		const minifiedLatin = `@font-face{font-family:Inter;src:url(/assets/inter-latin.woff2) format('woff2')}`;
 		const minifiedCyrillic = `@font-face{font-family:Inter;src:url(/assets/inter-cyrillic.woff2) format('woff2')}`;
 
 		it('should replace an @import with the self-hosted webfont css', async () => {
-			const { plugin, emitted, run } = setup([], { cssInPlace: true });
+			const { plugin, emitted, run } = setup([], { fontDefinitionsInCss: true });
 
 			plugin.transformIndexHtml(html, { path: '/index.html' });
 
@@ -529,7 +529,7 @@ describe('plugin (build)', () => {
 
 		it('should not read `$` in the css as a replacement pattern', async () => {
 			const fontFace = `@font-face{font-family:"$&$1$$";src:url(${lobsterUrl})}`;
-			const { run } = setup([], { cssInPlace: true });
+			const { run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({ 'assets/app.css': { source: fontFace + 'body{color:red}' } });
 
@@ -539,7 +539,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should self-host a @font-face rule where it is', async () => {
-			const { emitted, run } = setup([], { cssInPlace: true });
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({ 'assets/app.css': { source: userCss } });
 
@@ -550,7 +550,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should work without any html file', async () => {
-			const { emitted, run } = setup([], { cssInPlace: true });
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({
 				'assets/app.css': { source: `@import"${googleCssUrl}";${userCss}` },
@@ -566,7 +566,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should keep the remaining @import statements at the top', async () => {
-			const { run } = setup([], { cssInPlace: true });
+			const { run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({
 				'assets/app.css': {
@@ -580,7 +580,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should use relative urls with a relative base', async () => {
-			const { run } = setup([], { cssInPlace: true }, {}, './');
+			const { run } = setup([], { fontDefinitionsInCss: true }, {}, './');
 
 			const bundle = await run({
 				'assets/app.css': { source: userCss },
@@ -594,7 +594,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should prefix absolute urls with the base', async () => {
-			const { run } = setup([], { cssInPlace: true }, {}, '/app/');
+			const { run } = setup([], { fontDefinitionsInCss: true }, {}, '/app/');
 
 			const bundle = await run({ 'assets/app.css': { source: userCss } });
 
@@ -602,7 +602,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should respect `assetsSubfolder`', async () => {
-			const { run } = setup([], { cssInPlace: true, assetsSubfolder: 'fonts' }, {}, './');
+			const { run } = setup([], { fontDefinitionsInCss: true, assetsSubfolder: 'fonts' }, {}, './');
 
 			const bundle = await run({ 'assets/app.css': { source: userCss } });
 
@@ -610,7 +610,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should embed fonts', async () => {
-			const { emitted, run } = setup([], { cssInPlace: true, embedFonts: true });
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true, embedFonts: true });
 
 			const bundle = await run({
 				'assets/app.css': { source: `@import url('${googleCssUrl}');${userCss}` },
@@ -624,7 +624,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should filter subsets', async () => {
-			const { emitted, run } = setup([], { cssInPlace: true, subsetsAllowed: ['latin'] });
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true, subsetsAllowed: ['latin'] });
 
 			const bundle = await run({
 				'assets/app.css': { source: `@import url('${googleCssUrl}');${userCss}` },
@@ -639,7 +639,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should not minify when minification is off', async () => {
-			const { run } = setup([], { cssInPlace: true }, { minify: false });
+			const { run } = setup([], { fontDefinitionsInCss: true }, { minify: false });
 
 			const bundle = await run({
 				'assets/app.css': { source: `@import url('${googleCssUrl}');\nbody {\n  color: red;\n}\n` },
@@ -654,7 +654,7 @@ describe('plugin (build)', () => {
 
 		it('should handle the same @import in several css files', async () => {
 			const css = `@import url('${googleCssUrl}');body{color:red}`;
-			const { run } = setup([], { cssInPlace: true });
+			const { run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({
 				'assets/a.css': { source: css },
@@ -666,7 +666,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should add a repeated @import only once', async () => {
-			const { run } = setup([], { cssInPlace: true });
+			const { run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({
 				'assets/a.css': { source: `@import url('${googleCssUrl}');@import"${googleCssUrl}";body{color:red}` },
@@ -690,7 +690,7 @@ describe('plugin (build)', () => {
 				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
 			});
 
-			const { run } = setup([], { cssInPlace: true });
+			const { run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({
 				'assets/app.css': {
@@ -705,7 +705,7 @@ describe('plugin (build)', () => {
 
 		it('should leave the css untouched when the download fails', async () => {
 			const css = `@import url('https://fonts.googleapis.com/css2?family=Missing');${userCss}`;
-			const { emitted, run } = setup([], { cssInPlace: true });
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true });
 
 			const bundle = await run({ 'assets/app.css': { source: css } });
 
@@ -728,7 +728,7 @@ describe('plugin (build)', () => {
 				return Promise.resolve({ data: Buffer.from('font:' + url) }) as never;
 			});
 
-			const { plugin, emitted, run } = setup(lobsterCssUrl, { cssInPlace: true, subsetsAllowed: ['latin'] });
+			const { plugin, emitted, run } = setup(lobsterCssUrl, { fontDefinitionsInCss: true, subsetsAllowed: ['latin'] });
 
 			plugin.transformIndexHtml(html, { path: '/index.html' });
 
@@ -747,7 +747,7 @@ describe('plugin (build)', () => {
 		});
 
 		it('should save the fonts of the plugin config to webfonts.css when there is no html', async () => {
-			const { emitted, run } = setup(googleCssUrl, { cssInPlace: true, subsetsAllowed: ['latin'] });
+			const { emitted, run } = setup(googleCssUrl, { fontDefinitionsInCss: true, subsetsAllowed: ['latin'] });
 
 			const bundle = await run({ 'assets/app.css': { source: userCss } });
 

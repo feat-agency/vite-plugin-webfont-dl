@@ -230,7 +230,7 @@ The plugin uses a component-based architecture with single-responsibility classe
   assetsSubfolder: '',       // No subfolder
   throwError: false,         // Log errors as warnings, don't stop build
   subsetsAllowed: [],        // Allow all subsets
-  cssInPlace: false,         // Move fonts of the bundled css to the webfont css
+  fontDefinitionsInCss: false,         // Move fonts of the bundled css to the webfont css
 }
 ```
 
@@ -269,7 +269,7 @@ Multiple path variables interact:
 ### Bundled CSS Handling (build only)
 - `collectWebfontsFromBundleCss()` only *finds* the webfont `@import` statements and provider-hosted `@font-face` rules (`bundleCssFiles`); the css is changed by `applyBundleCss()` after everything is downloaded, and only when the webfont css ended up somewhere (html, css file or in place) — a removed rule must never be lost
 - **Default**: the `@import` statements and `@font-face` rules are removed from the bundled css and become part of the webfont css. The `@font-face` rules are kept in `cssContentBundle` and appended in `parseFontDefinitions()` — after parsing, so `subsetsAllowed` filtering can't drop them (they have no subset comments)
-- **`cssInPlace: true`**: nothing is moved
+- **`fontDefinitionsInCss: true`**: nothing is moved
   - an `@import` is removed and its downloaded css (subset filtered, urls replaced, minified) is appended to the **end** of the same file — `@font-face` works anywhere, the remaining `@import` statements stay valid at the top
   - a `@font-face` rule keeps its place, only its urls are replaced
   - font urls follow Vite's logic: `base + path` for an absolute base, a path relative to the css file for a relative base (`getFontsForCssFile()`)
@@ -374,7 +374,7 @@ webfontDownload([], {
    - `downloader.test.ts`: HTTP status handling and retries (local HTTP server)
    - `file-cache.test.ts`: Cache round trips, housekeeping, `cache: false`, unusable directories (temp dirs)
    - `pool.test.ts`: Concurrency limit, ordering, failure handling
-   - `plugin.test.ts`: Plugin hooks end-to-end with a mocked downloader (bundled CSS, `cssInPlace`, refused files, minify default, SSR, parallel downloads, dev middleware)
+   - `plugin.test.ts`: Plugin hooks end-to-end with a mocked downloader (bundled CSS, `fontDefinitionsInCss`, refused files, minify default, SSR, parallel downloads, dev middleware)
 
 3. **Examples as integration tests** (`examples/`): minimal vanilla / Vue / React / Svelte / React Router projects using the plugin via `file:../..`
    - `examples/check.mjs <output dir>` fails when the output has no `@font-face`, a font url points at a missing file, or anything still loads from a webfont provider

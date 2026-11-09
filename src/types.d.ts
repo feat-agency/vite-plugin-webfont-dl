@@ -110,11 +110,11 @@ export interface Options {
 	subsetsAllowed?: string[];
 
 	/**
-	 * Self-host the fonts referenced from your CSS (`@import`, `@font-face`) inside the same CSS file,
-	 * instead of moving them to the injected webfont CSS.
-	 * Use it with frameworks that render HTML outside of Vite (e.g., React Router, SvelteKit, Nuxt),
+	 * Keep the font definitions found in your CSS (`@import`, `@font-face`) in that same CSS file:
+	 * they are self-hosted there, instead of being moved into the HTML (or `webfonts.css`).
+	 * Use it with frameworks that render the HTML themselves (e.g., React Router, SvelteKit),
 	 * where the plugin has no HTML file to inject into.
 	 * default: `false`
 	 */
-	cssInPlace?: boolean;
+	fontDefinitionsInCss?: boolean;
 }

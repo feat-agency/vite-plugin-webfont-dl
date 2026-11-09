@@ -175,7 +175,7 @@ function viteWebfontDownload(
 					webfontDl.replaceFontUrls();
 					webfontDl.formatCss();
 
-					const cssInPlace = webfontDl.getOptions().cssInPlace;
+					const fontDefinitionsInCss = webfontDl.getOptions().fontDefinitionsInCss;
 					const cssSaved = webfontDl.hasCss() && (!webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size);
 					let cssInjected = false;
 
@@ -199,7 +199,7 @@ function viteWebfontDownload(
 
 					// the bundled css is changed last, and only when the webfont css ended up somewhere
 					// (html, css file or in place): a rule removed from it must never be lost
-					if (cssInPlace || cssSaved || cssInjected) {
+					if (fontDefinitionsInCss || cssSaved || cssInjected) {
 						webfontDl.applyBundleCss(bundle);
 					}
 				}

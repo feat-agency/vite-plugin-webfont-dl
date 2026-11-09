@@ -147,11 +147,15 @@ To use with the [Laravel Vite Plugin](https://laravel.com/docs/vite), add this l
 
 ### React Router, SvelteKit, and other frameworks that render the HTML themselves
 
-Frameworks such as React Router (framework mode) or SvelteKit render the HTML outside of Vite, so the plugin has no HTML file to inject the fonts into. For these, import the webfonts in your CSS and enable the `cssInPlace` option — the fonts are then self-hosted **inside the same CSS file**, which your framework already links:
+Frameworks such as React Router (framework mode) or SvelteKit render the HTML outside of Vite, so the plugin has no HTML file to inject the fonts into. For these, import the webfonts in your CSS and enable the `fontDefinitionsInCss` option:
 
 ```css
 /* app/app.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+
+body {
+  font-family: Inter, sans-serif;
+}
 ```
 
 ```js
@@ -162,21 +166,36 @@ export default {
   plugins: [
     // ...your framework's plugin
     webfontDownload([], {
-      cssInPlace: true,
+      fontDefinitionsInCss: true,
     }),
   ],
 };
 ```
 
-See the complete [React Router example](./examples/react-router). Good to know:
+**What the option changes** — where the self-hosted font definitions of your CSS end up:
 
-- `cssInPlace` applies to production builds. On the development server the `@import` is left untouched, so the fonts load from the webfont provider while developing.
-- It only changes how fonts found in your CSS (`@import`, `@font-face`) are handled. Fonts from HTML `<link>` tags and from URLs passed to the plugin are still injected into the HTML, or saved as `webfonts.css` when there is no HTML file.
+| | `fontDefinitionsInCss: false` (default) | `fontDefinitionsInCss: true` |
+|---|---|---|
+| Your CSS file | the `@import` is removed | the `@import` is replaced with the self-hosted `@font-face` definitions |
+| Font definitions | moved into the HTML (`<style>` tag or `webfonts.css`) | stay in your CSS file |
+| Needs an HTML file built by Vite | yes | no |
+
+```css
+/* app.css in the build output, with `fontDefinitionsInCss: true` (formatted for readability) */
+body{font-family:Inter,sans-serif}
+@font-face{font-family:Inter;font-weight:400;src:url(/assets/inter-xxxxxxxx.woff2) format('woff2')}
+...
+```
+
+Your framework already links that CSS file, so the fonts just work. See the complete [React Router example](./examples/react-router). Good to know:
+
+- `fontDefinitionsInCss` applies to production builds. On the development server the `@import` is left untouched, so the fonts load from the webfont provider while developing.
+- It only affects font definitions found in your CSS (`@import`, `@font-face`). Fonts from HTML `<link>` tags and from URLs passed to the plugin are still injected into the HTML, or saved as `webfonts.css` when there is no HTML file.
 - Tested with React Router 8 and SvelteKit 3.
 
 ### Astro
 
-Astro renders HTML outside of Vite's pipeline, so the Vite hook this plugin relies on (`transformIndexHtml`) is never called and the fonts are never injected into your pages in Astro projects ([withastro/astro#3310](https://github.com/withastro/astro/issues/3310)). The `cssInPlace` option has no effect in Astro either.
+Astro renders HTML outside of Vite's pipeline, so the Vite hook this plugin relies on (`transformIndexHtml`) is never called and the fonts are never injected into your pages in Astro projects ([withastro/astro#3310](https://github.com/withastro/astro/issues/3310)). The `fontDefinitionsInCss` option has no effect in Astro either.
 
 Use Astro's built-in [Fonts API](https://docs.astro.build/en/guides/fonts/) instead — it provides the same benefits natively (downloaded and self-hosted fonts, preloading, and optimized fallbacks):
 
@@ -206,7 +225,7 @@ export default defineConfig({
 | `assetsSubfolder` | `string` | `''` | Place downloaded font files in a subfolder of the assets directory. |
 | `cache` | `boolean` | `true` | Persistently cache downloaded CSS and font files (respects Vite's [`cacheDir`](https://vite.dev/config/shared-options#cachedir)). Set to `false` to disable caching and delete an existing cache. |
 | `subsetsAllowed` | `string[]` | `[]` | Only download the listed subsets (e.g. `['latin', 'latin-ext']`). An empty array allows all subsets. |
-| `cssInPlace` | `boolean` | `false` | Self-host the fonts referenced from your CSS (`@import`, `@font-face`) inside the same CSS file, instead of moving them to the injected webfont CSS. For [frameworks that render the HTML themselves](#react-router-sveltekit-and-other-frameworks-that-render-the-html-themselves). |
+| `fontDefinitionsInCss` | `boolean` | `false` | Keep the font definitions found in your CSS (`@import`, `@font-face`) in that same CSS file, self-hosted, instead of moving them into the HTML. For [frameworks that render the HTML themselves](#react-router-sveltekit-and-other-frameworks-that-render-the-html-themselves). |
 | `proxy` | `false \| AxiosProxyConfig` | `false` | [Proxy configuration](https://axios-http.com/docs/req_config) for network requests. |
 | `throwError` | `boolean` | `false` | Stop the build when a font fails to download or process. When `false`, errors are logged and the build continues: a file the webfont provider refuses (e.g. `404`) stays on the provider while everything else is self-hosted; on a network error nothing is changed. |
 
@@ -231,7 +250,7 @@ export default {
       proxy: false,
       assetsSubfolder: 'fonts',
       subsetsAllowed: ['latin', 'latin-ext'],
-      cssInPlace: false,
+      fontDefinitionsInCss: false,
       throwError: false,
     }),
   ],

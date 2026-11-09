@@ -8,7 +8,7 @@ Minimal projects showing the different ways to use `vite-plugin-webfont-dl`. Eac
 | [`vue`](./vue) | Simple config | URL passed to the plugin in `vite.config.js` |
 | [`react`](./react) | CSS `@import` detection | `@import` in `src/index.css` |
 | [`svelte`](./svelte) | Options (`injectAsStyleTag: false`, `subsetsAllowed`) | `<link>` tags in `index.html` |
-| [`react-router`](./react-router) | `cssInPlace` for frameworks that render HTML outside of Vite | `@import` in `app/app.css` |
+| [`react-router`](./react-router) | `fontDefinitionsInCss` for frameworks that render HTML outside of Vite | `@import` in `app/app.css` |
 
 ## Running an example
 

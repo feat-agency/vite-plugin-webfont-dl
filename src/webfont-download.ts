@@ -53,7 +53,7 @@ export class WebfontDownload {
 	private minifyCssExplicit: boolean;
 
 	private bundleCssFiles: BundleCssFile[] = []; // bundled css files with webfont @import / @font-face
-	private cssByUrl = new Map<string, string>(); // webfont css of the bundled @import urls (`cssInPlace`)
+	private cssByUrl = new Map<string, string>(); // webfont css of the bundled @import urls (`fontDefinitionsInCss`)
 	private failedWebfontUrls = new Set<string>(); // webfont css urls the provider refused, they stay remote
 	private downloadConcurrency = 6;
 
@@ -195,7 +195,7 @@ export class WebfontDownload {
 					});
 
 					// @font-face definitions are moved to the webfont css (unless they stay in place)
-					if (!this.options.cssInPlace) {
+					if (!this.options.fontDefinitionsInCss) {
 						parsedBundleCss.fontFaces.forEach((fontFace) => {
 							this.cssContentBundle += fontFace + '\n';
 						});
@@ -215,7 +215,7 @@ export class WebfontDownload {
 	 * Applies the changes to the bundled css:
 	 *  - default: the webfont `@import` statements and `@font-face` rules are removed,
 	 *    they are part of the injected webfont css
-	 *  - `cssInPlace`: they are replaced with their self-hosted version, inside the same file
+	 *  - `fontDefinitionsInCss`: they are replaced with their self-hosted version, inside the same file
 	 *
 	 * A webfont css which could not be downloaded keeps its `@import`.
 	 */
@@ -229,7 +229,7 @@ export class WebfontDownload {
 
 			let css = this.getAssetSource(asset);
 
-			if (this.options.cssInPlace) {
+			if (this.options.fontDefinitionsInCss) {
 				const fonts = this.getFontsForCssFile(file.path);
 				const appended = new Map<string, string>();
 
@@ -294,13 +294,13 @@ export class WebfontDownload {
 		this.fileCache.resetHits('css');
 
 		const started = Date.now();
-		const cssInPlace = this.options.cssInPlace && !this.isDevServer;
+		const fontDefinitionsInCss = this.options.fontDefinitionsInCss && !this.isDevServer;
 
 		// the css of these urls is injected into the html / saved as a css file
 		const sharedWebfontUrls = new Set([
 			...this.webfontUrls,
 			...this.webfontUrlsHtml,
-			...(cssInPlace ? [] : this.webfontUrlsCss),
+			...(fontDefinitionsInCss ? [] : this.webfontUrlsCss),
 		]);
 
 		const allWebfontUrls = new Set([
@@ -323,7 +323,7 @@ export class WebfontDownload {
 				.join('\n')
 				.trim();
 
-			if (cssInPlace) {
+			if (fontDefinitionsInCss) {
 				this.webfontUrlsCss.forEach((url) => {
 					const webfontCss = css.get(url);
 
@@ -362,7 +362,7 @@ export class WebfontDownload {
 		return this.cssContent.length > 0 ||
 			this.cssContentBundle.length > 0 ||
 			this.cssByUrl.size > 0 ||
-			(cssInPlace && this.bundleCssFiles.some((file) => file.fontFaces.length > 0));
+			(fontDefinitionsInCss && this.bundleCssFiles.some((file) => file.fontFaces.length > 0));
 	}
 
 	parseFontDefinitions = (): void => {
@@ -382,7 +382,7 @@ export class WebfontDownload {
 			this.fonts.set(font.filename, font);
 		});
 
-		// `cssInPlace`: the webfont css of every bundled @import is kept separately
+		// `fontDefinitionsInCss`: the webfont css of every bundled @import is kept separately
 		this.cssByUrl.forEach((css, url) => {
 			const parseResultInPlace = this.cssParser.parse(css, this.base, this.assetsDir);
 
@@ -614,7 +614,7 @@ export class WebfontDownload {
 	}
 
 	/**
-	 * Fonts with the path a bundled css file has to use (`cssInPlace`).
+	 * Fonts with the path a bundled css file has to use (`fontDefinitionsInCss`).
 	 * Follows Vite's own logic: absolute urls, unless the `base` is relative.
 	 */
 	private getFontsForCssFile(cssPath: string): FontCollection {

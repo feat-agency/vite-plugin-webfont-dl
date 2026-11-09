@@ -3,12 +3,12 @@ import { defineConfig } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
 
 // React Router renders the html itself, so the plugin has no html file to inject into.
-// With `cssInPlace` the webfonts imported in app/app.css are self-hosted inside that css file.
+// With `fontDefinitionsInCss` the font definitions of app/app.css stay in that css file, self-hosted.
 export default defineConfig({
 	plugins: [
 		reactRouter(),
 		webfontDownload([], {
-			cssInPlace: true,
+			fontDefinitionsInCss: true,
 		}),
 	],
 });

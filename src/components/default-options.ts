@@ -10,7 +10,7 @@ const defaultOptions: Required<Options> = {
 	assetsSubfolder: '',
 	throwError: false,
 	subsetsAllowed: [],
-	cssInPlace: false,
+	fontDefinitionsInCss: false,
 };
 
 export const getResolvedOptions = (options: Options = {}): Required<Options> => {
