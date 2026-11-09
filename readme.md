@@ -11,37 +11,39 @@ The plugin collects webfont links, imports, and definitions from your project, d
 
 ## Features
 
-- **Zero config** — automatically detects webfont `<link>` tags, plugin config URLs, and CSS `@import` statements
-- **Self-hosted fonts** — font files are bundled with your app; no third-party requests at runtime
-- **Non-render-blocking** — fonts are injected as an inline `<style>` tag or an asynchronously loaded stylesheet
-- **Privacy-first** — visitors never connect to font CDNs, so no user data is exposed to third parties
-- **Persistent cache** — downloaded CSS and font files are cached locally, enabling offline development
-- **Broad compatibility** — works with Vite 2–8, including the Rolldown-based Vite 8
+- ⚡ **Zero config** — automatically detects webfont `<link>` tags, plugin config URLs, and CSS `@import` statements
+- 📦 **Self-hosted fonts** — font files are bundled with your app; no third-party requests at runtime
+- 🚀 **Non-render-blocking** — fonts are injected as an inline `<style>` tag or an asynchronously loaded stylesheet
+- 🔒 **Privacy-first** — visitors never connect to font CDNs, so no user data is exposed to third parties
+- 💾 **Persistent cache** — downloaded CSS and font files are cached locally, enabling offline development
+- 🧩 **Broad compatibility** — works with Vite 2–8, including the Rolldown-based Vite 8 (see [framework notes](#framework-notes))
 
-## Install
+## Installation
 
 ```bash
+# npm
 npm i -D vite-plugin-webfont-dl
-```
 
-```bash
+# pnpm
 pnpm add -D vite-plugin-webfont-dl
-```
 
-```bash
+# yarn
 yarn add -D vite-plugin-webfont-dl
+
+# bun
+bun add -d vite-plugin-webfont-dl
 ```
 
 ## Usage
 
 There are two alternative ways to use the plugin — **choose whichever fits your project**, you don't need both:
 
-- **[Zero config](#method-a-zero-config)** — keep your webfont provider's original `<link>` snippet in your HTML; the plugin detects and replaces it automatically.
-- **[Simple config](#method-b-simple-config)** — no `<link>` tags in your HTML; pass the webfont CSS URL(s) directly to the plugin instead.
+- **[Zero config](#zero-config)** — keep your webfont provider's original `<link>` snippet in your HTML; the plugin detects and replaces it automatically.
+- **[Simple config](#simple-config)** — no `<link>` tags in your HTML; pass the webfont CSS URL(s) directly to the plugin instead.
 
 Both methods lead to the same result: self-hosted, non-render-blocking webfonts — see [That's all!](#thats-all) below.
 
-### Method A: Zero config
+### Zero config
 
 Extracts, downloads, and injects fonts from the original code snippet of your webfont provider.
 
@@ -72,7 +74,7 @@ Extracts, downloads, and injects fonts from the original code snippet of your we
    <style>@font-face{font-family:...;src:url(/assets/foo-xxxxxxxx.woff2) format('woff2'),url(/assets/bar-yyyyyyyy.woff) format('woff')}...</style>
    ```
 
-### Method B: Simple config
+### Simple config
 
 Extracts, downloads, and injects fonts from the configured webfont CSS URL(s).
 
@@ -116,6 +118,23 @@ h2 {
 
 <img src="./img/terminal.png" alt="Terminal output showing downloaded webfonts" width="400" />
 
+## Supported webfont providers
+
+| Provider | [Zero config](#zero-config)<br>(HTML `<link>`) | [Simple config](#simple-config)<br>(CSS URL) | CSS `@import`<br>detection |
+|---|:---:|:---:|:---:|
+| [Google Fonts](https://fonts.google.com) | ✅ | ✅ | ✅ |
+| [Bunny Fonts](https://bunny.net/fonts/) | ✅ | ✅ | ✅ |
+| [Fontshare](https://www.fontshare.com) | ✅ | ✅ | ✅ |
+| [Fira Code](https://github.com/tonsky/FiraCode) & [Hack](https://github.com/source-foundry/Hack) (`cdn.jsdelivr.net`) | ✅ | ✅ | — |
+| [Inter](https://rsms.me/inter/) (`rsms.me`) | ✅ | ✅ | — |
+| Any CSS with `@font-face` definitions | — | ✅ | — |
+
+> **CSS `@import` detection:** in addition to HTML tags and plugin config, the plugin also scans your bundled CSS for `@import` statements pointing at the providers marked above and self-hosts those fonts as well.
+
+## Framework notes
+
+The plugin works with any setup where Vite processes your HTML entry — plain Vite apps, Vue, React, Svelte, and backend integrations such as Laravel.
+
 ### Laravel
 
 To use with the [Laravel Vite Plugin](https://laravel.com/docs/vite), add this line to your Blade file:
@@ -124,17 +143,28 @@ To use with the [Laravel Vite Plugin](https://laravel.com/docs/vite), add this l
 @vite('webfonts.css')
 ```
 
-## Supported webfont providers
+### Astro
 
-All of the following work with both [zero config](#method-a-zero-config) and [simple config](#method-b-simple-config):
+Astro renders HTML outside of Vite's pipeline, so the Vite hook this plugin relies on (`transformIndexHtml`) is never called and the fonts are never injected into your pages in Astro projects ([withastro/astro#3310](https://github.com/withastro/astro/issues/3310)).
 
-- [Google Fonts](https://fonts.google.com)
-- [Bunny Fonts](https://bunny.net/fonts/)
-- [Fontshare](https://www.fontshare.com)
-- [Fira Code](https://github.com/tonsky/FiraCode) and [Hack](https://github.com/source-foundry/Hack) fonts (`cdn.jsdelivr.net`)
-- [Inter](https://rsms.me/inter/) font (`rsms.me`)
+Use Astro's built-in [Fonts API](https://docs.astro.build/en/guides/fonts/) instead — it provides the same benefits natively (downloaded and self-hosted fonts, preloading, and optimized fallbacks):
 
-Additionally, any provider whose CSS contains `@font-face` definitions works with [simple config](#method-b-simple-config).
+```js
+// astro.config.mjs
+import { defineConfig, fontProviders } from 'astro/config';
+
+export default defineConfig({
+  fonts: [
+    {
+      provider: fontProviders.google(),
+      name: 'Fira Code',
+      cssVariable: '--font-fira-code',
+    },
+  ],
+});
+```
+
+The same limitation applies to any framework that generates its HTML outside of Vite (e.g., React Router in framework mode, VitePress builds, or SvelteKit's `app.html`).
 
 ## Options
 
@@ -193,6 +223,8 @@ webfontDownload([
 Adding third-party webfonts ([Google Fonts](https://fonts.google.com), [Bunny Fonts](https://bunny.net/fonts/), or [Fontshare](https://www.fontshare.com)) the standard way can significantly slow down page load. Lighthouse and PageSpeed Insights flag the external stylesheets as *render-blocking resources*: the page can't fully render until the webfont CSS has been fetched from the remote server.
 
 This plugin downloads the fonts at build time and injects them into your project as an internal or external stylesheet, turning third-party webfonts into self-hosted ones. Eliminating the render-blocking requests improves page performance, user experience, and SEO — and since no third-party server is involved, your visitors' privacy is protected as well.
+
+Further reading: [Page Speed Checklist — Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
 
 ## How it works
 
@@ -264,9 +296,16 @@ Comparison using a [starter Vite project](https://github.com/vitejs/vite/tree/ma
 
 ![Performance comparison of standard Google Fonts vs vite-plugin-webfont-dl](./img/compare.png)
 
-## Resources
+## Contributing
 
-- [Page Speed Checklist / Fix & Eliminate Render Blocking Resources](https://pagespeedchecklist.com/eliminate-render-blocking-resources)
+Bug reports, feature requests, and pull requests are welcome on the [issue tracker](https://github.com/feat-agency/vite-plugin-webfont-dl/issues).
+
+```bash
+npm install     # install dependencies
+npm start       # build in watch mode
+npm test        # run the test suite
+npm run lint    # type-check and lint
+```
 
 ## License
 
