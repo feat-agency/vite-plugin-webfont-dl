@@ -72,6 +72,7 @@ function viteWebfontDownload(
 ): Plugin {
 	const webfontDl = new WebfontDownload(webfontUrls, options);
 	const htmlFiles: Map<string, string> = new Map<string, string>();
+	let isSsrBuild = false;
 
 	return {
 		name: 'vite-plugin-webfont-dl',
@@ -82,9 +83,10 @@ function viteWebfontDownload(
 			webfontDl.setAssetsDir(resolvedConfig.build.assetsDir);
 			webfontDl.setCacheDir(resolvedConfig.cacheDir);
 
-			if (resolvedConfig.build.minify === false && !webfontDl.getOptions().minifyCss) {
-				webfontDl.setMinifyCss(false);
-			}
+			// `minifyCss` defaults to the value of `build.minify`
+			webfontDl.setMinifyCssDefault(resolvedConfig.build.minify !== false);
+
+			isSsrBuild = !!resolvedConfig.build.ssr;
 
 			webfontDl.setResolvedLogger(resolvedConfig.logger);
 		},
@@ -136,6 +138,17 @@ function viteWebfontDownload(
 		},
 
 		async generateBundle(options: unknown, bundle: OutputBundle) {
+			// fonts belong to the client build only, the server (SSR) output has no use for them
+			// `this.environment` is available from Vite 6, older versions only have `build.ssr`
+			const environment = (this as { environment?: { config?: { consumer?: string } } }).environment;
+			const consumer = environment?.config?.consumer;
+
+			if (consumer ? consumer === 'server' : isSsrBuild) {
+				return;
+			}
+
+			webfontDl.clearFonts();
+
 			webfontDl.setEmitFileFunction(
 				(emittedFile: EmittedAsset) => this.emitFile(emittedFile)
 			);
@@ -161,7 +174,10 @@ function viteWebfontDownload(
 					webfontDl.replaceFontUrls();
 					webfontDl.formatCss();
 
-					if (!webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size) {
+					const cssSaved = !webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size;
+					let cssInjected = false;
+
+					if (cssSaved) {
 						webfontDl.saveCss();
 					}
 
@@ -173,10 +189,20 @@ function viteWebfontDownload(
 							asset.source = webfontDl.injectToHtml(asset.source);
 
 							htmlFiles.set(htmlPath, asset.source);
+							cssInjected = true;
 						}
 					});
+
+					// the webfont css has to end up somewhere (html or css file),
+					// otherwise the rules removed from the bundled css would be lost
+					if (!cssSaved && !cssInjected) {
+						webfontDl.restoreBundleCss(bundle);
+					}
 				}
 			} catch (error) {
+				// fall back to the remote fonts of the bundled css
+				webfontDl.restoreBundleCss(bundle);
+
 				webfontDl.logError(
 					colors.red((error as Error).message)
 				);

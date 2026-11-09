@@ -35,6 +35,7 @@ export interface ParsedBundleCss {
 	fonts: FontCollection;
 	webfontUrlsCss: Set<string>;
 	matchedCssParts: string[];
+	fontFaces: string[];
 }
 
 export interface Options {

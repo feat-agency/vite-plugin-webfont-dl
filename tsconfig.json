@@ -6,7 +6,10 @@
 			"es2021"
 		],
 		"target": "es2018",
-		"baseUrl": ".",
+		"paths": {
+			"src/*": ["./src/*"]
+		},
+		"types": ["node"],
 		"outDir": "./dist",
 		"strict": true,
 		"strictNullChecks": true,

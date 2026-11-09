@@ -22,10 +22,10 @@ export class CssParser {
 		private options: Required<Options>,
 	) {}
 
-	public parse(cssContent: string, base: string, assetsDir: string): { cssContent: string; fonts: FontCollection } {
+	public parse(cssContent: string, base: string, assetsDir: string, filterSubsets = true): { cssContent: string; fonts: FontCollection } {
 		const fonts: FontCollection = new Map();
 
-		if (this.options.subsetsAllowed.length) {
+		if (filterSubsets && this.options.subsetsAllowed.length) {
 			let newCssContent = '';
 
 			const fontFaceWithSubsetCommentMatches = cssContent.matchAll(this.fontFaceWithSubsetCommentRegex);
@@ -93,6 +93,7 @@ export class CssParser {
 		const fonts: FontCollection = new Map();
 		const webfontUrlsCss = new Set<string>([]);
 		const matchedCssParts: string[] = [];
+		const matchedFontFaces: string[] = [];
 
 		const importRegex = /@import\s*(?:url\()?['"]?([^\s'")]+)['"]?\)?;/g;
 		const fontFaceRegex = /@font-face\s*{[^}]*}/g;
@@ -102,14 +103,23 @@ export class CssParser {
 
 		fontFaces.forEach((match) => {
 			const fontFace = match[0];
-			const parseResult = this.parse(fontFace, base, assetsDir);
+
+			// the user's own @font-face rules have no subset comments,
+			// so subset filtering must not be applied here
+			const parseResult = this.parse(fontFace, base, assetsDir, false);
+			let matched = false;
 
 			parseResult.fonts.forEach((font: Font) => {
 				if (this.webfontProviders.some((regex) => regex.test(font.url))) {
 					fonts.set(font.filename, font);
-					matchedCssParts.push(match[0]);
+					matched = true;
 				}
 			});
+
+			if (matched && !matchedFontFaces.includes(fontFace)) {
+				matchedCssParts.push(fontFace);
+				matchedFontFaces.push(fontFace);
+			}
 		});
 
 		imports.forEach((match) => {
@@ -125,6 +135,7 @@ export class CssParser {
 			fonts,
 			webfontUrlsCss,
 			matchedCssParts,
+			fontFaces: matchedFontFaces,
 		};
 	}
 }
