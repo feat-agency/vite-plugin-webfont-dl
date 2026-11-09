@@ -46,6 +46,9 @@ export class WebfontDownload {
 	private fontUrlsDevMap: Map<string, string>;
 
 	private cssContent = '';
+	private cssContentBundle = ''; // @font-face rules moved out of the bundled css
+	private minifyCssExplicit: boolean;
+	private bundleCssOriginals = new Map<string, string | Uint8Array>();
 
 
 
@@ -65,6 +68,7 @@ export class WebfontDownload {
 		this.webfontUrlsHtml = new Set<string>([]);
 		this.webfontUrlsCss = new Set<string>([]);
 		this.options = getResolvedOptions(options);
+		this.minifyCssExplicit = options?.minifyCss !== undefined;
 
 		this.logger = new Logger();
 		this.downloader = new Downloader(this.options, this.logger);
@@ -113,6 +117,20 @@ export class WebfontDownload {
 		this.options.minifyCss = minifyCss;
 	}
 
+	/**
+	 * `minifyCss` defaults to Vite's own minify setting,
+	 * an explicitly set plugin option always wins.
+	 */
+	setMinifyCssDefault(minifyCss: boolean) {
+		if (!this.minifyCssExplicit) {
+			this.options.minifyCss = minifyCss;
+		}
+	}
+
+	clearFonts() {
+		this.fonts.clear();
+	}
+
 	setResolvedLogger(resolvedLogger: ViteLogger) {
 		this.logger.setResolvedLogger(resolvedLogger);
 	}
@@ -143,6 +161,8 @@ export class WebfontDownload {
 
 	collectWebfontsFromBundleCss(bundle: OutputBundle) {
 		this.webfontUrlsCss.clear();
+		this.cssContentBundle = '';
+		this.bundleCssOriginals.clear();
 
 		for (const path in bundle) {
 			if (/\.css$/.exec(path)) {
@@ -165,16 +185,35 @@ export class WebfontDownload {
 						this.webfontUrlsCss.add(url);
 					});
 
-					// @font-face definitions
+					// remove the matched @import and @font-face parts from the bundled css
 					parsedBundleCss.matchedCssParts.forEach((cssPart) => {
 						bundleCssContent = bundleCssContent.replaceAll(cssPart, '');
-						this.cssContent += cssPart + '\n';
 					});
 
+					// keep the @font-face definitions, they are moved to the webfont css
+					parsedBundleCss.fontFaces.forEach((fontFace) => {
+						this.cssContentBundle += fontFace + '\n';
+					});
+
+					this.bundleCssOriginals.set(path, (bundle[path] as OutputAsset).source);
 					(bundle[path] as OutputAsset).source = bundleCssContent;
 				}
 			}
 		}
+	}
+
+	/**
+	 * Puts back the original bundled css (with the remote @import / @font-face rules),
+	 * so the fonts keep working from the webfont provider when the download fails.
+	 */
+	restoreBundleCss(bundle: OutputBundle) {
+		this.bundleCssOriginals.forEach((source, path) => {
+			if (bundle[path] !== undefined) {
+				(bundle[path] as OutputAsset).source = source;
+			}
+		});
+
+		this.bundleCssOriginals.clear();
 	}
 
 	clearWebfontUrlsHtml() {
@@ -215,7 +254,7 @@ export class WebfontDownload {
 			);
 		}
 
-		return this.cssContent.length > 0;
+		return this.cssContent.length > 0 || this.cssContentBundle.length > 0;
 	}
 
 	parseFontDefinitions = (): void => {
@@ -225,7 +264,11 @@ export class WebfontDownload {
 			this.assetsDir
 		);
 
-		this.cssContent = parseResult.cssContent;
+		// the @font-face rules of the bundled css are appended after parsing,
+		// so subset filtering (`subsetsAllowed`) can't drop them
+		this.cssContent = [parseResult.cssContent, this.cssContentBundle.trim()]
+			.filter((css) => css.length > 0)
+			.join('\n');
 
 		parseResult.fonts.forEach((font: Font) => {
 			this.fonts.set(font.filename, font);
@@ -369,7 +412,7 @@ export class WebfontDownload {
 			);
 
 			response.statusCode = 502;
-			response.setHeader('X-Error', (error as Error).message.replace(/^Error: /, ''));
+			response.setHeader('X-Error', this.toHeaderValue(error));
 			response.end();
 		}
 	}
@@ -382,13 +425,24 @@ export class WebfontDownload {
 		const url = request.originalUrl?.replace(/[?#].*$/, '');
 
 		if (url && this.fontUrlsDevMap.has(url)) {
-			const font = await this.downloadFont(
-				this.fontUrlsDevMap.get(url)!
-			);
+			try {
+				const font = await this.downloadFont(
+					this.fontUrlsDevMap.get(url)!
+				);
 
-			response.setHeader('Access-Control-Allow-Origin', '*');
-			response.setHeader('Content-Type', 'font/' + (url?.replace(/^.*\./, '') || 'woff2'));
-			response.end(font);
+				response.setHeader('Access-Control-Allow-Origin', '*');
+				response.setHeader('Content-Type', 'font/' + (url?.replace(/^.*\./, '') || 'woff2'));
+				response.end(font);
+			} catch (error) {
+				// a failed download must not take down the dev server (unhandled rejection)
+				this.logger.error(
+					colors.red((error as Error).message)
+				);
+
+				response.statusCode = 502;
+				response.setHeader('X-Error', this.toHeaderValue(error));
+				response.end();
+			}
 		} else {
 			next();
 		}
@@ -396,6 +450,14 @@ export class WebfontDownload {
 
 	logError(output: string) {
 		this.logger.error(output);
+	}
+
+	// header values must not contain control or non-ASCII characters (`setHeader` would throw)
+	private toHeaderValue(error: unknown): string {
+		return (error instanceof Error ? error.message : String(error))
+			.replace(/^Error: /, '')
+			.replace(/[^\x20-\x7E]+/g, ' ')
+			.trim();
 	}
 
 	private toDuration(started: number): string {

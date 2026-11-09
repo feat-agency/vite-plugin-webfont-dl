@@ -18,6 +18,9 @@ export class Downloader {
 	) {
 		this.axios = new Axios({
 			timeout: this.timeout,
+			// the bare `Axios` class has no default `validateStatus`,
+			// without this 4xx/5xx error pages would be treated as css/fonts
+			validateStatus: (status: number) => status >= 200 && status < 300,
 			proxy: this.options.proxy,
 			httpAgent: new HttpAgent({
 				keepAlive: true,
@@ -49,7 +52,7 @@ export class Downloader {
 				((isAxiosError(err) ? err.message : err) as string)
 			);
 
-			if (tries < this.maxTries) {
+			if (tries < this.maxTries && this.isRetryable(err)) {
 				await new Promise((r) => setTimeout(r, this.randomWaitInterval()));
 
 				return this.download(url, responseType, tries + 1);
@@ -57,6 +60,13 @@ export class Downloader {
 				throw err;
 			}
 		}
+	}
+
+	// client errors (e.g. 400, 404) are permanent, retrying them only slows down the build
+	private isRetryable(err: unknown): boolean {
+		const status = isAxiosError(err) ? err.response?.status : undefined;
+
+		return status === undefined || status >= 500 || status === 408 || status === 429;
 	}
 
 	private toRequest(url: string, responseType?: ResponseType) {

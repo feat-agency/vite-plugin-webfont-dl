@@ -169,6 +169,8 @@ The plugin uses a component-based architecture with single-responsibility classe
   - Logs success with try number if retry was needed
   - Throws error after 3 failed attempts
 - **Timeout**: 2500ms per request
+- **HTTP status validation**: The bare `Axios` class has no default `validateStatus`, so it is set explicitly (2xx only). Without it, 4xx/5xx error pages are treated as CSS/fonts (and cached)
+- **Retry rules**: Network errors, 5xx, 408 and 429 are retried; other 4xx errors fail immediately
 - **Proxy support**: Accepts AxiosProxyConfig for corporate proxy environments
 - **Response types**:
   - Default: `arraybuffer` (for binary fonts)
@@ -259,7 +261,21 @@ Multiple path variables interact:
 - CSS is always external, never inline
 - Font downloads cached in `fontUrlsDevMap` for subsequent requests
 
+### Bundled CSS Handling (build only)
+- Webfont `@import` statements and provider-hosted `@font-face` rules are removed from the bundled CSS
+- The `@font-face` rules are kept in `cssContentBundle` and appended to the webfont CSS in `parseFontDefinitions()` — after parsing, so `subsetsAllowed` filtering can't drop them (they have no subset comments)
+- If the download fails (and `throwError` is `false`), `restoreBundleCss()` puts the original CSS back so the fonts keep loading from the provider
+- The same restore happens when the webfont CSS can't be placed anywhere (not saved as a file and no HTML asset in the bundle, e.g. a secondary output) — a removed rule must never be lost
+- The font collection is cleared at the start of every `generateBundle` (watch mode)
+
+### SSR Builds
+- `generateBundle` does nothing for server builds: `this.environment.config.consumer === 'server'` (Vite 6+), falling back to `build.ssr` on older versions
+
+### `minifyCss` Default
+- Follows `build.minify` unless the option is set explicitly (`setMinifyCssDefault()` in `configResolved`)
+
 ### Error Handling
+- **Dev server**: A failed font download responds with 502 (an uncaught rejection would crash the dev server)
 - **`throwError` option**: Controls build behavior on errors
   - `false` (default): Logs error as warning, continues build
   - `true`: Throws error, stops build
@@ -340,6 +356,8 @@ webfontDownload([], {
    - `css-injector.test.ts`: HTML injection, indentation preservation
    - `index-html-processor.test.ts`: Tag extraction and removal for all providers
    - `save.test.ts`: File emission and path generation
+   - `downloader.test.ts`: HTTP status handling and retries (local HTTP server)
+   - `plugin.test.ts`: Plugin hooks end-to-end with a mocked downloader (bundled CSS, minify default, SSR, errors, dev middleware)
 
 2. **Fixture files**: Real-world examples
    - `google-fonts.css`: Full Google Fonts CSS with all subsets
@@ -410,6 +428,7 @@ Multiple export names for flexibility:
 - **Target**: ES2018
 - **Module**: ESNext with bundler resolution (required for Vite 8's exports-only package)
 - **Strict mode**: Enabled with strict null checks
+- **TypeScript version**: Pinned to `^5` — tsup 8 injects the deprecated `baseUrl` option into its DTS build, which fails on TypeScript 6
 - **noUnusedLocals**: Enforced for clean code
 - **Include**: `src/`, `test/`, config files
 - **Exclude**: `dist/`
