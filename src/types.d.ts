@@ -26,16 +26,27 @@ export interface Font {
 	url: string;
 	filename: string;
 	localPath: string;
+	savedPath?: string; // emitted file name, relative to the output directory
 	binary?: Buffer;
 }
 
 export type FontCollection = Map<string, Font>;
+
+export interface BundleCssImport {
+	url: string;
+	statement: string;
+}
 
 export interface ParsedBundleCss {
 	fonts: FontCollection;
 	webfontUrlsCss: Set<string>;
 	matchedCssParts: string[];
 	fontFaces: string[];
+	imports: BundleCssImport[];
+}
+
+export interface BundleCssFile extends Pick<ParsedBundleCss, 'fontFaces' | 'imports'> {
+	path: string;
 }
 
 export interface Options {
@@ -97,4 +108,13 @@ export interface Options {
 	 * default: `[]`
 	 */
 	subsetsAllowed?: string[];
+
+	/**
+	 * Keep the font definitions found in your CSS (`@import`, `@font-face`) in that same CSS file:
+	 * they are self-hosted there, instead of being moved into the HTML (or `webfonts.css`).
+	 * Use it with frameworks that render the HTML themselves (e.g., React Router, SvelteKit),
+	 * where the plugin has no HTML file to inject into.
+	 * default: `false`
+	 */
+	fontDefinitionsInCss?: boolean;
 }

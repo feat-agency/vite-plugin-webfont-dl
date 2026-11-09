@@ -12,8 +12,8 @@ export class FontLoader {
 	async load(url: string): Promise<Buffer> {
 		const cachedFile = this.fileCache.get('font', url);
 
-		if (cachedFile) {
-			return cachedFile as Buffer;
+		if (cachedFile !== undefined) {
+			return cachedFile;
 		}
 
 		this.logger.flashLine(url);

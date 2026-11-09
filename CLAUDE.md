@@ -69,6 +69,7 @@ The plugin uses a component-based architecture with single-responsibility classe
 
 **Key implementation details:**
 - Uses FileCache for persistent storage
+- **`loadEach(urls, isolateRefused, concurrency)`**: downloads the urls in parallel (`mapPool`), returns `{ css: Map<url, css>, failed: Set<url> }` in the order of the urls. With `isolateRefused` an url the provider refuses (4xx) lands in `failed` instead of rejecting; network / server errors always reject
 - **URL normalization edge cases**:
   - Protocol-relative URLs (`//fonts.googleapis.com/...`) → prefixed with `https:`
   - Relative URLs (`../fonts/`, `./fonts/`, `fonts/`) → resolved to absolute URLs using CSS file's origin
@@ -177,26 +178,29 @@ The plugin uses a component-based architecture with single-responsibility classe
   - Optional: `text` (for CSS files)
 
 #### file-cache.ts
-**Purpose**: Persistent file-based cache for CSS and fonts
+**Purpose**: Persistent file-based cache for CSS and fonts (no dependencies, `node:fs` only)
 
 **Key implementation details:**
-- **Cache location**: Respects Vite's `cacheDir` configuration (defaults to `node_modules/.vite/cache/`)
+- **Layout**: one file per entry — `<cacheDir>/webfont-dl/<plugin version>/<sha1 of the url>.<css|font>`
+  - CSS is stored as utf8 text, fonts as raw binary (same size as the font)
+  - Replaced the flat-cache JSON file of ≤3.13 (fonts as number arrays, whole file rewritten on every save)
+- **Cache location**: Respects Vite's `cacheDir` configuration
   - Directory is set via `setCacheDir()` method called in `configResolved` hook
   - Supports custom cache locations (e.g., `.yarn/.cache` for Yarn PnP)
-  - Cache is reinitialized if directory changes
-- **Cache versioning**: Filename includes plugin version (`plugin-webfont-dl_${version}.json`)
-  - Automatically invalidates cache when plugin updates
-  - Prevents issues from format changes between versions
-- **Dual data types**:
-  - CSS: Stored as strings
-  - Fonts: Stored as Buffers
-- **Buffer serialization**:
-  - flat-cache stores everything as JSON
-  - Buffers are serialized as `{type: 'Buffer', data: [...]}`
-  - Deserialized back to Buffer on retrieval using `Buffer.from()`
-- **Cache hit tracking**: Maintains separate counters for CSS and font cache hits
-- **Cache clearing**: When `cache: false`, existing cache is deleted on initialization
-- **Save strategy**: Saves immediately after each write (`cache.save(true)`)
+- **Cache versioning**: The plugin version is part of the path, so a plugin update invalidates the cache
+- **Housekeeping** (`prepare()`, once per cache directory, on first use): removes the directories of other versions and the legacy `plugin-webfont-dl_*.json` files
+- **Atomic writes**: write to a temp file + rename, so parallel builds never read a half-written file
+- **Best effort**: every fs error is swallowed, the cache must never break a build
+- **Cache hit tracking**: Separate counters for CSS and fonts, reset per build (`resetHits()`)
+- **Cache clearing**: When `cache: false`, the existing cache (every version + legacy files) is deleted on first use
+
+#### pool.ts
+**Purpose**: `mapPool(items, limit, worker)` — runs async work with limited concurrency
+
+**Key implementation details:**
+- Results keep the order of the items
+- After the first failure no new item is started; it rejects with that failure once the running workers have finished (nothing keeps running in the background)
+- Downloads use a concurrency of 6 (`downloadConcurrency` in `WebfontDownload`)
 
 #### logger.ts
 **Purpose**: Logging with Vite integration and TTY support
@@ -226,6 +230,7 @@ The plugin uses a component-based architecture with single-responsibility classe
   assetsSubfolder: '',       // No subfolder
   throwError: false,         // Log errors as warnings, don't stop build
   subsetsAllowed: [],        // Allow all subsets
+  fontDefinitionsInCss: false,         // Move fonts of the bundled css to the webfont css
 }
 ```
 
@@ -262,11 +267,21 @@ Multiple path variables interact:
 - Font downloads cached in `fontUrlsDevMap` for subsequent requests
 
 ### Bundled CSS Handling (build only)
-- Webfont `@import` statements and provider-hosted `@font-face` rules are removed from the bundled CSS
-- The `@font-face` rules are kept in `cssContentBundle` and appended to the webfont CSS in `parseFontDefinitions()` — after parsing, so `subsetsAllowed` filtering can't drop them (they have no subset comments)
-- If the download fails (and `throwError` is `false`), `restoreBundleCss()` puts the original CSS back so the fonts keep loading from the provider
-- The same restore happens when the webfont CSS can't be placed anywhere (not saved as a file and no HTML asset in the bundle, e.g. a secondary output) — a removed rule must never be lost
+- `collectWebfontsFromBundleCss()` only *finds* the webfont `@import` statements and provider-hosted `@font-face` rules (`bundleCssFiles`); the css is changed by `applyBundleCss()` after everything is downloaded, and only when the webfont css ended up somewhere (html, css file or in place) — a removed rule must never be lost
+- **Default**: the `@import` statements and `@font-face` rules are removed from the bundled css and become part of the webfont css. The `@font-face` rules are kept in `cssContentBundle` and appended in `parseFontDefinitions()` — after parsing, so `subsetsAllowed` filtering can't drop them (they have no subset comments)
+- **`fontDefinitionsInCss: true`**: nothing is moved
+  - an `@import` is removed and its downloaded css (subset filtered, urls replaced, minified) is appended to the **end** of the same file — `@font-face` works anywhere, the remaining `@import` statements stay valid at the top
+  - a `@font-face` rule keeps its place, only its urls are replaced
+  - font urls follow Vite's logic: `base + path` for an absolute base, a path relative to the css file for a relative base (`getFontsForCssFile()`)
+  - the css of these urls is kept per url in `cssByUrl`, it is not part of the shared `cssContent`
+  - build only: on the dev server the `@import` stays remote
 - The font collection is cleared at the start of every `generateBundle` (watch mode)
+- HTML files are processed in sorted order, so the output is deterministic
+
+### Download Failures (build)
+- **Refused file** (`Downloader.isRefused()`: 4xx except 408 / 429): only that file is affected. A webfont css keeps its `<link>` tag (`IndexHtmlProcessor.removeTags(html, keepUrls)`) / `@import`; a font keeps its remote url in the css. Everything else is self-hosted
+- **Network / server error** (no response, 5xx, 408, 429 — after the retries): all or nothing, the build output is not changed
+- `throwError: true` and the dev server never isolate, any failure rejects
 
 ### SSR Builds
 - `generateBundle` does nothing for server builds: `this.environment.config.consumer === 'server'` (Vite 6+), falling back to `build.ssr` on older versions
@@ -280,7 +295,7 @@ Multiple path variables interact:
   - `false` (default): Logs error as warning, continues build
   - `true`: Throws error, stops build
 - **Axios errors**: Extracts request details (method, protocol, host, path) for debugging
-- **Graceful degradation**: If fonts fail to download, build continues without them (unless `throwError: true`)
+- **Graceful degradation**: If fonts fail to download, build continues without them (unless `throwError: true`), see "Download Failures"
 
 ### HTML Processing Edge Cases
 - **Commented tags**: `<!-- <link href="..."> -->` are ignored
@@ -345,7 +360,7 @@ webfontDownload([], {
 ### Test Structure
 - **Location**: `test/` directory
 - **Fixtures**: `test/fixtures/` contains sample HTML and CSS files
-- **Framework**: Vitest 4
+- **Framework**: Vitest 5
 - **Configuration**: `vitest.config.ts` sets test directory and `src/` alias for imports
 
 ### Test Categories
@@ -357,7 +372,14 @@ webfontDownload([], {
    - `index-html-processor.test.ts`: Tag extraction and removal for all providers
    - `save.test.ts`: File emission and path generation
    - `downloader.test.ts`: HTTP status handling and retries (local HTTP server)
-   - `plugin.test.ts`: Plugin hooks end-to-end with a mocked downloader (bundled CSS, minify default, SSR, errors, dev middleware)
+   - `file-cache.test.ts`: Cache round trips, housekeeping, `cache: false`, unusable directories (temp dirs)
+   - `pool.test.ts`: Concurrency limit, ordering, failure handling
+   - `plugin.test.ts`: Plugin hooks end-to-end with a mocked downloader (bundled CSS, `fontDefinitionsInCss`, refused files, minify default, SSR, parallel downloads, dev middleware)
+
+3. **Examples as integration tests** (`examples/`): minimal vanilla / Vue / React / Svelte / React Router projects using the plugin via `file:../..`
+   - `examples/check.mjs <output dir>` fails when the output has no `@font-face`, a font url points at a missing file, or anything still loads from a webfont provider
+   - CI builds and checks every example (`examples` job) and builds `vanilla` with every Vite major of the peer range, 2–8 (`vite-compat` job)
+   - They hit the real webfont providers; the lockfiles and build output of the examples are not committed
 
 2. **Fixture files**: Real-world examples
    - `google-fonts.css`: Full Google Fonts CSS with all subsets
@@ -387,19 +409,20 @@ webfontDownload([], {
 dist/
 ├── index.js      # CommonJS
 ├── index.mjs     # ESM
-└── index.d.ts    # TypeScript definitions
+├── index.d.ts    # TypeScript definitions (CommonJS)
+└── index.d.mts   # TypeScript definitions (ESM)
 ```
 
 ### Module Exports
 ```json
 {
   ".": {
-    "types": "./dist/index.d.ts",
-    "require": "./dist/index.js",
-    "import": "./dist/index.mjs"
+    "import": { "types": "./dist/index.d.mts", "default": "./dist/index.mjs" },
+    "require": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }
   }
 }
 ```
+Verify packaging changes with `npx @arethetypeswrong/cli --pack .` (must report no problems).
 
 Multiple export names for flexibility:
 - `default` (main export)
@@ -412,13 +435,14 @@ Multiple export names for flexibility:
 ## Code Style and Linting
 
 ### ESLint Configuration (eslint.config.mjs)
+- ESLint 10, native flat config built with the `typescript-eslint` package
 - **Extends**:
-  - `eslint:recommended`
-  - `@typescript-eslint/recommended-type-checked`
-  - `@typescript-eslint/stylistic-type-checked`
+  - `js.configs.recommended`
+  - `tseslint.configs.recommendedTypeChecked`
+  - `tseslint.configs.stylisticTypeChecked`
 - **Parser**: TypeScript ESLint parser with type-aware linting
 - **Rules**:
-  - Trailing commas required in multiline constructs
+  - Trailing commas required in multiline arrays, objects, imports and exports (function calls and parameters are not checked)
   - Single quotes preferred
   - Semicolons required
   - Semicolon spacing enforced
@@ -428,7 +452,7 @@ Multiple export names for flexibility:
 - **Target**: ES2018
 - **Module**: ESNext with bundler resolution (required for Vite 8's exports-only package)
 - **Strict mode**: Enabled with strict null checks
-- **TypeScript version**: Pinned to `^5` — tsup 8 injects the deprecated `baseUrl` option into its DTS build, which fails on TypeScript 6
+- **TypeScript version**: `^6` with tsup 9. TypeScript 7 is not supported by typescript-eslint yet
 - **noUnusedLocals**: Enforced for clean code
 - **Include**: `src/`, `test/`, config files
 - **Exclude**: `dist/`
@@ -437,6 +461,7 @@ Multiple export names for flexibility:
 - Vite 8 is rolldown-based; its plugin hook types differ from rollup's
 - **Never import types from `rollup`** — use the minimal structural types in `src/types.d.ts` (`EmittedAsset`, `EmitFile`, `OutputAsset`, `OutputBundle`), which are compatible with both rollup (Vite ≤7) and rolldown (Vite 8+)
 - `dist/index.d.ts` must only reference the `Plugin` type from `vite`, so consumers on any Vite version (2–8) can type-check
+- The publish workflows still use `actions/setup-node@v4`: v7 removes the placeholder `NODE_AUTH_TOKEN` the trusted publishing setup relies on, test a change there with a beta release first
 
 ## Important Patterns and Conventions
 
@@ -461,9 +486,9 @@ Multiple export names for flexibility:
 - Check that base paths are correctly applied
 
 ### When Working with Cache
-- Cache filename includes version - increment version on breaking changes
-- Test both string (CSS) and Buffer (font) serialization
-- Remember cache is disabled in tests by default
+- The cache path includes the plugin version, a release invalidates the cache
+- Test both string (CSS) and Buffer (font) round trips
+- Use a temp directory as `cacheDir` in tests; `cache: false` deletes the cache of the configured directory
 
 ### Dev Server Considerations
 - Middleware runs before Vite's built-in middleware

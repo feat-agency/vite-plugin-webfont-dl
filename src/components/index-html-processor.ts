@@ -69,9 +69,19 @@ export class IndexHtmlProcessor {
 		return webfontUrls;
 	}
 
-	removeTags(html: string): string {
-		html = this.removePreconnectTags(html);
-		html = this.removeWebfontTags(html);
+	/**
+	 * Removes the webfont tags, except the ones of `keepUrls`:
+	 * a webfont css which could not be downloaded stays on the provider.
+	 */
+	removeTags(html: string, keepUrls = new Set<string>()): string {
+		// a kept tag still benefits from the preconnect hints
+		const keepsTag = keepUrls.size > 0 && [...this.parse(html)].some((url) => keepUrls.has(url));
+
+		if (!keepsTag) {
+			html = this.removePreconnectTags(html);
+		}
+
+		html = this.removeWebfontTags(html, keepUrls);
 
 		return html;
 	}
@@ -85,10 +95,14 @@ export class IndexHtmlProcessor {
 		return html;
 	}
 
-	private removeWebfontTags(html: string): string {
+	private removeWebfontTags(html: string, keepUrls: Set<string>): string {
 		for (const regex of this.webfontRegexes) {
 			const removeRegex = new RegExp('[ \t]*' + regex.source + '(\r\n|\r|\n)?', 'g');
-			html = html.replace(removeRegex, '$1');
+
+			html = html.replace(
+				removeRegex,
+				(match: string, comment: string | undefined, url: string) => keepUrls.has(url) ? match : (comment ?? '')
+			);
 		}
 
 		return html;

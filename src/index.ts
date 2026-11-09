@@ -159,8 +159,9 @@ function viteWebfontDownload(
 
 			webfontDl.clearWebfontUrlsHtml();
 
-			htmlFiles.forEach(
-				(html) => webfontDl.collectWebfontsFromHtml(html)
+			// sorted, so the output doesn't depend on the order the html files were transformed in
+			[...htmlFiles.keys()].sort().forEach(
+				(htmlPath) => webfontDl.collectWebfontsFromHtml(htmlFiles.get(htmlPath)!)
 			);
 
 			webfontDl.collectWebfontsFromBundleCss(bundle);
@@ -174,35 +175,35 @@ function viteWebfontDownload(
 					webfontDl.replaceFontUrls();
 					webfontDl.formatCss();
 
-					const cssSaved = !webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size;
+					const fontDefinitionsInCss = webfontDl.getOptions().fontDefinitionsInCss;
+					const cssSaved = webfontDl.hasCss() && (!webfontDl.getOptions().injectAsStyleTag || !htmlFiles.size);
 					let cssInjected = false;
 
 					if (cssSaved) {
 						webfontDl.saveCss();
 					}
 
-					htmlFiles.forEach((html, htmlPath) => {
-						const asset = bundle[htmlPath] as OutputAsset;
+					if (webfontDl.hasCss()) {
+						htmlFiles.forEach((html, htmlPath) => {
+							const asset = bundle[htmlPath] as OutputAsset;
 
-						if (asset !== undefined) {
-							asset.source = webfontDl.removeTagsFromHtml(asset.source as string);
-							asset.source = webfontDl.injectToHtml(asset.source);
+							if (asset !== undefined) {
+								asset.source = webfontDl.removeTagsFromHtml(asset.source as string);
+								asset.source = webfontDl.injectToHtml(asset.source);
 
-							htmlFiles.set(htmlPath, asset.source);
-							cssInjected = true;
-						}
-					});
+								htmlFiles.set(htmlPath, asset.source);
+								cssInjected = true;
+							}
+						});
+					}
 
-					// the webfont css has to end up somewhere (html or css file),
-					// otherwise the rules removed from the bundled css would be lost
-					if (!cssSaved && !cssInjected) {
-						webfontDl.restoreBundleCss(bundle);
+					// the bundled css is changed last, and only when the webfont css ended up somewhere
+					// (html, css file or in place): a rule removed from it must never be lost
+					if (fontDefinitionsInCss || cssSaved || cssInjected) {
+						webfontDl.applyBundleCss(bundle);
 					}
 				}
 			} catch (error) {
-				// fall back to the remote fonts of the bundled css
-				webfontDl.restoreBundleCss(bundle);
-
 				webfontDl.logError(
 					colors.red((error as Error).message)
 				);

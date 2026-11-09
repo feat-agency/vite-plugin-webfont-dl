@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { CssParser } from 'src/components/css-parser';
-import { CssTransformer } from 'src/components/css-transformer';
-import { Font } from 'src/types';
+import { CssTransformer, getFontMime } from 'src/components/css-transformer';
+import type { Font, FontCollection } from 'src/types';
 import { getResolvedOptions } from 'src/components/default-options';
 import { describe, expect, it } from 'vitest';
 
@@ -45,5 +45,29 @@ describe('css transformer', () => {
 		const cssAfter = cssTransformer.minify(cssBefore);
 
 		expect(cssAfter).eq(cssExpected);
+	});
+
+	it('should replace an url which is the prefix of another url correctly', () => {
+		// `font.woff` is listed first and is a prefix of `font.woff2`
+		const css = '@font-face{src:url(https://example.com/font.woff) format("woff"),url(https://example.com/font.woff2) format("woff2")}';
+
+		const fonts: FontCollection = new Map([
+			['font.woff', { url: 'https://example.com/font.woff', filename: 'font.woff', localPath: '/assets/font-AAAA.woff' }],
+			['font.woff2', { url: 'https://example.com/font.woff2', filename: 'font.woff2', localPath: '/assets/font-BBBB.woff2' }],
+		]);
+
+		const cssAfter = (new CssTransformer(getResolvedOptions({}))).transform(css, fonts);
+
+		expect(cssAfter).eq('@font-face{src:url(/assets/font-AAAA.woff) format("woff"),url(/assets/font-BBBB.woff2) format("woff2")}');
+	});
+
+	it('should resolve the mime type of a font', () => {
+		expect(getFontMime('font.woff2')).eq('font/woff2');
+		expect(getFontMime('font.woff')).eq('font/woff');
+		expect(getFontMime('font.ttf')).eq('font/ttf');
+		expect(getFontMime('font.otf')).eq('font/otf');
+		expect(getFontMime('/assets/icons.SVG?v=1#iefix')).eq('image/svg+xml');
+		expect(getFontMime('font.eot')).eq('application/vnd.ms-fontobject');
+		expect(getFontMime('unknown')).eq('font/woff2');
 	});
 });

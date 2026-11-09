@@ -1,4 +1,5 @@
 import { ServerResponse } from 'http';
+import { posix } from 'node:path';
 import {
 	getResolvedOptions,
 	Logger,
@@ -10,8 +11,10 @@ import {
 	CssInjector,
 	FontLoader,
 	IndexHtmlProcessor,
+	getFontMime,
+	mapPool,
 } from './components';
-import { EmitFile, EmittedAsset, Font, FontCollection, Options, OutputAsset, OutputBundle } from './types';
+import { BundleCssFile, EmitFile, EmittedAsset, Font, FontCollection, Options, OutputAsset, OutputBundle } from './types';
 import { Connect, Logger as ViteLogger } from 'vite';
 import colors from 'picocolors';
 
@@ -48,7 +51,11 @@ export class WebfontDownload {
 	private cssContent = '';
 	private cssContentBundle = ''; // @font-face rules moved out of the bundled css
 	private minifyCssExplicit: boolean;
-	private bundleCssOriginals = new Map<string, string | Uint8Array>();
+
+	private bundleCssFiles: BundleCssFile[] = []; // bundled css files with webfont @import / @font-face
+	private cssByUrl = new Map<string, string>(); // webfont css of the bundled @import urls (`fontDefinitionsInCss`)
+	private failedWebfontUrls = new Set<string>(); // webfont css urls the provider refused, they stay remote
+	private downloadConcurrency = 6;
 
 
 
@@ -159,17 +166,19 @@ export class WebfontDownload {
 		}
 	}
 
+	/**
+	 * Finds the webfont `@import` statements and `@font-face` rules of the bundled css.
+	 * The css itself is only changed later, by `applyBundleCss()`, after everything is downloaded.
+	 */
 	collectWebfontsFromBundleCss(bundle: OutputBundle) {
 		this.webfontUrlsCss.clear();
 		this.cssContentBundle = '';
-		this.bundleCssOriginals.clear();
+		this.bundleCssFiles = [];
 
 		for (const path in bundle) {
 			if (/\.css$/.exec(path)) {
-				let bundleCssContent = (bundle[path] as OutputAsset).source.toString();
-
 				const parsedBundleCss = this.cssParser.parseBundleCss(
-					bundleCssContent,
+					this.getAssetSource(bundle[path] as OutputAsset),
 					this.base,
 					this.assetsDir,
 				);
@@ -185,35 +194,93 @@ export class WebfontDownload {
 						this.webfontUrlsCss.add(url);
 					});
 
-					// remove the matched @import and @font-face parts from the bundled css
-					parsedBundleCss.matchedCssParts.forEach((cssPart) => {
-						bundleCssContent = bundleCssContent.replaceAll(cssPart, '');
-					});
+					// @font-face definitions are moved to the webfont css (unless they stay in place)
+					if (!this.options.fontDefinitionsInCss) {
+						parsedBundleCss.fontFaces.forEach((fontFace) => {
+							this.cssContentBundle += fontFace + '\n';
+						});
+					}
 
-					// keep the @font-face definitions, they are moved to the webfont css
-					parsedBundleCss.fontFaces.forEach((fontFace) => {
-						this.cssContentBundle += fontFace + '\n';
+					this.bundleCssFiles.push({
+						path,
+						imports: parsedBundleCss.imports,
+						fontFaces: parsedBundleCss.fontFaces,
 					});
-
-					this.bundleCssOriginals.set(path, (bundle[path] as OutputAsset).source);
-					(bundle[path] as OutputAsset).source = bundleCssContent;
 				}
 			}
 		}
 	}
 
 	/**
-	 * Puts back the original bundled css (with the remote @import / @font-face rules),
-	 * so the fonts keep working from the webfont provider when the download fails.
+	 * Applies the changes to the bundled css:
+	 *  - default: the webfont `@import` statements and `@font-face` rules are removed,
+	 *    they are part of the injected webfont css
+	 *  - `fontDefinitionsInCss`: they are replaced with their self-hosted version, inside the same file
+	 *
+	 * A webfont css which could not be downloaded keeps its `@import`.
 	 */
-	restoreBundleCss(bundle: OutputBundle) {
-		this.bundleCssOriginals.forEach((source, path) => {
-			if (bundle[path] !== undefined) {
-				(bundle[path] as OutputAsset).source = source;
-			}
-		});
+	applyBundleCss(bundle: OutputBundle) {
+		for (const file of this.bundleCssFiles) {
+			const asset = bundle[file.path] as OutputAsset | undefined;
 
-		this.bundleCssOriginals.clear();
+			if (asset === undefined) {
+				continue;
+			}
+
+			let css = this.getAssetSource(asset);
+
+			if (this.options.fontDefinitionsInCss) {
+				const fonts = this.getFontsForCssFile(file.path);
+				const appended = new Map<string, string>();
+
+				file.fontFaces.forEach((fontFace) => {
+					const selfHosted = this.cssTransformer.transform(fontFace, fonts);
+
+					// a function, so `$` in the css is never read as a replacement pattern
+					css = css.replaceAll(fontFace, () => selfHosted);
+				});
+
+				file.imports.forEach(({ url, statement }) => {
+					const webfontCss = this.cssByUrl.get(url);
+
+					if (webfontCss !== undefined) {
+						css = css.replaceAll(statement, '');
+
+						appended.set(
+							url,
+							this.cssTransformer.formatCss(this.cssTransformer.transform(webfontCss, fonts))
+						);
+					}
+				});
+
+				// @font-face rules work anywhere in the file, an `@import` only at the top:
+				// appending keeps the remaining `@import` statements valid
+				if (appended.size) {
+					const separator = this.options.minifyCss ? '' : '\n';
+
+					css = css.trimEnd() + separator + [...appended.values()].join(separator) + separator;
+				}
+			} else {
+				file.fontFaces.forEach((fontFace) => {
+					css = css.replaceAll(fontFace, '');
+				});
+
+				file.imports.forEach(({ url, statement }) => {
+					if (!this.failedWebfontUrls.has(url)) {
+						css = css.replaceAll(statement, '');
+					}
+				});
+			}
+
+			asset.source = css;
+		}
+	}
+
+	/**
+	 * `true` when there is webfont css to inject into the html / save as a css file.
+	 */
+	hasCss(): boolean {
+		return this.cssContent.length > 0;
 	}
 
 	clearWebfontUrlsHtml() {
@@ -222,23 +289,55 @@ export class WebfontDownload {
 
 	async downloadWebfontCss(): Promise<boolean> {
 		this.cssContent = '';
+		this.cssByUrl.clear();
+		this.failedWebfontUrls.clear();
+		this.fileCache.resetHits('css');
 
 		const started = Date.now();
+		const fontDefinitionsInCss = this.options.fontDefinitionsInCss && !this.isDevServer;
 
-		const allWebfontUrls = new Set([
+		// the css of these urls is injected into the html / saved as a css file
+		const sharedWebfontUrls = new Set([
 			...this.webfontUrls,
 			...this.webfontUrlsHtml,
+			...(fontDefinitionsInCss ? [] : this.webfontUrlsCss),
+		]);
+
+		const allWebfontUrls = new Set([
+			...sharedWebfontUrls,
 			...this.webfontUrlsCss,
 		]);
 
 		if (allWebfontUrls.size) {
-			this.cssContent += await this.cssLoader.loadAll(allWebfontUrls);
+			const { css, failed } = await this.cssLoader.loadEach(
+				allWebfontUrls,
+				this.isolateRefused(),
+				this.downloadConcurrency
+			);
+
+			this.failedWebfontUrls = failed;
+
+			this.cssContent = [...sharedWebfontUrls]
+				.map((url) => css.get(url))
+				.filter((webfontCss) => webfontCss !== undefined)
+				.join('\n')
+				.trim();
+
+			if (fontDefinitionsInCss) {
+				this.webfontUrlsCss.forEach((url) => {
+					const webfontCss = css.get(url);
+
+					if (webfontCss !== undefined) {
+						this.cssByUrl.set(url, webfontCss);
+					}
+				});
+			}
 		}
 
 		if (!this.isDevServer) {
 			this.logger.info(
 				colors.green('✓') + ' ' +
-				allWebfontUrls.size.toString() + ' webfont css downloaded. ' +
+				(allWebfontUrls.size - this.failedWebfontUrls.size).toString() + ' webfont css downloaded. ' +
 				colors.dim('(' +
 					colors.bold(this.toDuration(started)) +
 					(allWebfontUrls.size ? (
@@ -252,9 +351,18 @@ export class WebfontDownload {
 				')'),
 				false
 			);
+
+			if (this.failedWebfontUrls.size) {
+				this.logger.error(
+					colors.red(`✗ ${this.failedWebfontUrls.size} webfont css could not be downloaded, it stays on the webfont provider.`)
+				);
+			}
 		}
 
-		return this.cssContent.length > 0 || this.cssContentBundle.length > 0;
+		return this.cssContent.length > 0 ||
+			this.cssContentBundle.length > 0 ||
+			this.cssByUrl.size > 0 ||
+			(fontDefinitionsInCss && this.bundleCssFiles.some((file) => file.fontFaces.length > 0));
 	}
 
 	parseFontDefinitions = (): void => {
@@ -273,6 +381,17 @@ export class WebfontDownload {
 		parseResult.fonts.forEach((font: Font) => {
 			this.fonts.set(font.filename, font);
 		});
+
+		// `fontDefinitionsInCss`: the webfont css of every bundled @import is kept separately
+		this.cssByUrl.forEach((css, url) => {
+			const parseResultInPlace = this.cssParser.parse(css, this.base, this.assetsDir);
+
+			this.cssByUrl.set(url, parseResultInPlace.cssContent);
+
+			parseResultInPlace.fonts.forEach((font: Font) => {
+				this.fonts.set(font.filename, font);
+			});
+		});
 	};
 
 	async downloadFont(url: string): Promise<Buffer> {
@@ -285,22 +404,44 @@ export class WebfontDownload {
 
 	async downloadFonts() {
 		const started = Date.now();
+		const fonts = [...this.fonts.values()];
+		const isolateRefused = this.isolateRefused();
 
-		for (const [, font] of this.fonts) {
-			const binary = await this.fontLoader.load(font.url);
+		this.fileCache.resetHits('font');
 
-			this.saveFont(font, binary);
-		}
+		const binaries = await mapPool(fonts, this.downloadConcurrency, async (font) => {
+			try {
+				return await this.fontLoader.load(font.url);
+			} catch (error) {
+				// a font the provider refused keeps its remote url
+				if (isolateRefused && Downloader.isRefused(error)) {
+					return undefined;
+				}
+
+				throw error;
+			}
+		});
+
+		// the files are saved in the original order, so the output doesn't depend on the download order
+		fonts.forEach((font, index) => {
+			const binary = binaries[index];
+
+			if (binary !== undefined) {
+				this.saveFont(font, binary);
+			} else {
+				this.fonts.delete(font.filename);
+			}
+		});
 
 		this.logger.info(
 			colors.green('✓') + ' ' +
 			this.fonts.size + ' webfonts downloaded. ' +
 			colors.dim('(' +
 				colors.bold(this.toDuration(started)) +
-				(this.fonts.size ? (
+				(fonts.length ? (
 					', ' +
 						(this.options.cache !== false ?
-							`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.font, this.fonts.size))}` :
+							`cache hit: ${colors.bold(this.toPercent(this.fileCache.hits.font, fonts.length))}` :
 							'cache disabled'
 						)
 					) : ''
@@ -308,6 +449,12 @@ export class WebfontDownload {
 			')'),
 			false
 		);
+
+		if (this.fonts.size < fonts.length) {
+			this.logger.error(
+				colors.red(`✗ ${fonts.length - this.fonts.size} webfonts could not be downloaded, they stay on the webfont provider.`)
+			);
+		}
 	}
 
 	saveFont = (font: Font, binary: Buffer) => {
@@ -327,6 +474,8 @@ export class WebfontDownload {
 				(assetsSubfolder ? `${assetsSubfolder}/` : '') + font.filename,
 				binary
 			);
+
+			font.savedPath = savedPath;
 
 			if (this.options.injectAsStyleTag) {
 				font.localPath = this.base + savedPath;
@@ -373,7 +522,7 @@ export class WebfontDownload {
 	};
 
 	removeTagsFromHtml(html: string) {
-		return this.indexHtmlProcessor.removeTags(html);
+		return this.indexHtmlProcessor.removeTags(html, this.failedWebfontUrls);
 	}
 
 	injectToHtml(html: string): string {
@@ -431,7 +580,7 @@ export class WebfontDownload {
 				);
 
 				response.setHeader('Access-Control-Allow-Origin', '*');
-				response.setHeader('Content-Type', 'font/' + (url?.replace(/^.*\./, '') || 'woff2'));
+				response.setHeader('Content-Type', getFontMime(url));
 				response.end(font);
 			} catch (error) {
 				// a failed download must not take down the dev server (unhandled rejection)
@@ -450,6 +599,41 @@ export class WebfontDownload {
 
 	logError(output: string) {
 		this.logger.error(output);
+	}
+
+	/**
+	 * Build: a file the webfont provider refuses (4xx) doesn't fail the others, it stays remote.
+	 * Network / server errors, the dev server and `throwError` keep the all-or-nothing behaviour.
+	 */
+	private isolateRefused(): boolean {
+		return !this.isDevServer && !this.options.throwError;
+	}
+
+	private getAssetSource(asset: OutputAsset): string {
+		return typeof asset.source === 'string' ? asset.source : Buffer.from(asset.source).toString('utf8');
+	}
+
+	/**
+	 * Fonts with the path a bundled css file has to use (`fontDefinitionsInCss`).
+	 * Follows Vite's own logic: absolute urls, unless the `base` is relative.
+	 */
+	private getFontsForCssFile(cssPath: string): FontCollection {
+		const isRelativeBase = this.base === '' || this.base.startsWith('.');
+		const fonts: FontCollection = new Map<string, Font>();
+
+		this.fonts.forEach((font, filename) => {
+			let localPath = font.localPath;
+
+			if (font.savedPath !== undefined) {
+				localPath = isRelativeBase ?
+					posix.relative(posix.dirname(cssPath), font.savedPath) :
+					this.base + font.savedPath;
+			}
+
+			fonts.set(filename, { ...font, localPath });
+		});
+
+		return fonts;
 	}
 
 	// header values must not contain control or non-ASCII characters (`setHeader` would throw)

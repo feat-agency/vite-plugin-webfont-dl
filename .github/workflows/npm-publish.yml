@@ -27,7 +27,7 @@ jobs:
             const json = JSON.parse(require('fs').readFileSync(0, 'utf8'));
             const pkg = Array.isArray(json) ? json[0] : Object.values(json)[0];
             const files = pkg.files.map(f => f.path);
-            const required = ['dist/index.js', 'dist/index.mjs', 'dist/index.d.ts'];
+            const required = ['dist/index.js', 'dist/index.mjs', 'dist/index.d.ts', 'dist/index.d.mts'];
             const missing = required.filter(f => !files.includes(f));
             if (missing.length) { console.error('Tarball is missing:', missing.join(', ')); process.exit(1); }
             console.log('Tarball OK:', files.join(', '));

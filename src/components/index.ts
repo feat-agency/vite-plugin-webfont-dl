@@ -2,6 +2,7 @@ export * from './default-options';
 export * from './logger';
 
 export * from './downloader';
+export * from './pool';
 export * from './file-cache';
 
 export * from './css-loader';

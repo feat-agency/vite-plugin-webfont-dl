@@ -1,6 +1,6 @@
 {
 	"name": "vite-plugin-webfont-dl",
-	"version": "3.13.2",
+	"version": "3.14.0",
 	"description": "Vite plugin for downloading and injecting webfonts",
 	"keywords": [
 		"vite",
@@ -20,15 +20,21 @@
 	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"require": "./dist/index.js",
-			"import": "./dist/index.mjs"
+			"import": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
 		}
 	},
 	"files": [
 		"dist/index.js",
 		"dist/index.mjs",
-		"dist/index.d.ts"
+		"dist/index.d.ts",
+		"dist/index.d.mts"
 	],
 	"scripts": {
 		"start": "npm run build -- --watch",
@@ -42,21 +48,22 @@
 	"dependencies": {
 		"axios": "^1",
 		"clean-css": "^5",
-		"flat-cache": "^6",
 		"picocolors": "^1"
 	},
 	"peerDependencies": {
 		"vite": "^2 || ^3 || ^4 || ^5 || ^6 || ^7 || ^8"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10",
 		"@types/clean-css": "^4",
 		"@types/node": "^22",
-		"@typescript-eslint/eslint-plugin": "^8",
-		"eslint": "^9",
-		"tsup": "^6 || ^7 || ^8",
-		"typescript": "^5",
+		"eslint": "^10",
+		"globals": "^17",
+		"tsup": "^9",
+		"typescript": "^6",
+		"typescript-eslint": "^8",
 		"vite": "^8",
-		"vitest": "^0 || ^1 || ^2 || ^3 || ^4"
+		"vitest": "^5"
 	},
 	"repository": {
 		"type": "git",
