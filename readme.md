@@ -116,6 +116,8 @@ h2 {
 
 > **Import alias:** the plugin can be imported under any of these names: `webfontDownload`, `webfontDl`, `viteWebfontDl`, `ViteWebfontDownload`, or `viteWebfontDownload`.
 
+> **Examples:** the [`examples`](./examples) directory has minimal, runnable projects for [vanilla](./examples/vanilla), [Vue](./examples/vue), [React](./examples/react), [Svelte](./examples/svelte), and [React Router](./examples/react-router).
+
 <img src="./img/terminal.png" alt="Terminal output showing downloaded webfonts" width="400" />
 
 ## Supported webfont providers
@@ -129,11 +131,11 @@ h2 {
 | [Inter](https://rsms.me/inter/) (`rsms.me`) | ✅ | ✅ | — |
 | Any CSS with `@font-face` definitions | — | ✅ | — |
 
-> **CSS `@import` detection:** in addition to HTML tags and plugin config, the plugin also scans your bundled CSS for `@import` statements pointing at the providers marked above and self-hosts those fonts as well.
+> **CSS `@import` detection:** in addition to HTML tags and plugin config, the plugin also scans your bundled CSS for `@import` statements pointing at the providers marked above and self-hosts those fonts as well ([example](./examples/react)). The same goes for `@font-face` rules in your CSS whose font files are hosted on `fonts.gstatic.com` or `fonts.bunny.net`.
 
 ## Framework notes
 
-The plugin works with any setup where Vite processes your HTML entry — plain Vite apps, Vue, React, Svelte, and backend integrations such as Laravel.
+The plugin works out of the box with any setup where Vite processes your HTML entry — plain Vite apps, [Vue](./examples/vue), [React](./examples/react), [Svelte](./examples/svelte), and backend integrations such as Laravel.
 
 ### Laravel
 
@@ -143,9 +145,38 @@ To use with the [Laravel Vite Plugin](https://laravel.com/docs/vite), add this l
 @vite('webfonts.css')
 ```
 
+### React Router, SvelteKit, and other frameworks that render the HTML themselves
+
+Frameworks such as React Router (framework mode) or SvelteKit render the HTML outside of Vite, so the plugin has no HTML file to inject the fonts into. For these, import the webfonts in your CSS and enable the `cssInPlace` option — the fonts are then self-hosted **inside the same CSS file**, which your framework already links:
+
+```css
+/* app/app.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+```
+
+```js
+// vite.config.js
+import webfontDownload from 'vite-plugin-webfont-dl';
+
+export default {
+  plugins: [
+    // ...your framework's plugin
+    webfontDownload([], {
+      cssInPlace: true,
+    }),
+  ],
+};
+```
+
+See the complete [React Router example](./examples/react-router). Good to know:
+
+- `cssInPlace` applies to production builds. On the development server the `@import` is left untouched, so the fonts load from the webfont provider while developing.
+- It only changes how fonts found in your CSS (`@import`, `@font-face`) are handled. Fonts from HTML `<link>` tags and from URLs passed to the plugin are still injected into the HTML, or saved as `webfonts.css` when there is no HTML file.
+- Tested with React Router 8 and SvelteKit 3.
+
 ### Astro
 
-Astro renders HTML outside of Vite's pipeline, so the Vite hook this plugin relies on (`transformIndexHtml`) is never called and the fonts are never injected into your pages in Astro projects ([withastro/astro#3310](https://github.com/withastro/astro/issues/3310)).
+Astro renders HTML outside of Vite's pipeline, so the Vite hook this plugin relies on (`transformIndexHtml`) is never called and the fonts are never injected into your pages in Astro projects ([withastro/astro#3310](https://github.com/withastro/astro/issues/3310)). The `cssInPlace` option has no effect in Astro either.
 
 Use Astro's built-in [Fonts API](https://docs.astro.build/en/guides/fonts/) instead — it provides the same benefits natively (downloaded and self-hosted fonts, preloading, and optimized fallbacks):
 
@@ -164,8 +195,6 @@ export default defineConfig({
 });
 ```
 
-The same limitation applies to any framework that generates its HTML outside of Vite (e.g., React Router in framework mode, VitePress builds, or SvelteKit's `app.html`).
-
 ## Options
 
 | Option | Type | Default | Description |
@@ -177,8 +206,9 @@ The same limitation applies to any framework that generates its HTML outside of 
 | `assetsSubfolder` | `string` | `''` | Place downloaded font files in a subfolder of the assets directory. |
 | `cache` | `boolean` | `true` | Persistently cache downloaded CSS and font files (respects Vite's [`cacheDir`](https://vite.dev/config/shared-options#cachedir)). Set to `false` to disable caching and delete an existing cache. |
 | `subsetsAllowed` | `string[]` | `[]` | Only download the listed subsets (e.g. `['latin', 'latin-ext']`). An empty array allows all subsets. |
+| `cssInPlace` | `boolean` | `false` | Self-host the fonts referenced from your CSS (`@import`, `@font-face`) inside the same CSS file, instead of moving them to the injected webfont CSS. For [frameworks that render the HTML themselves](#react-router-sveltekit-and-other-frameworks-that-render-the-html-themselves). |
 | `proxy` | `false \| AxiosProxyConfig` | `false` | [Proxy configuration](https://axios-http.com/docs/req_config) for network requests. |
-| `throwError` | `boolean` | `false` | Stop the build when a font fails to download or process. When `false`, errors are logged as warnings and the build continues. |
+| `throwError` | `boolean` | `false` | Stop the build when a font fails to download or process. When `false`, errors are logged and the build continues: a file the webfont provider refuses (e.g. `404`) stays on the provider while everything else is self-hosted; on a network error nothing is changed. |
 
 > **Content Security Policy:** the async loading technique uses an inline `onload` handler, which strict CSP environments (e.g. Chrome extensions) prohibit. In those environments, keep the default `injectAsStyleTag: true`, or set `async: false` for standard blocking CSS loading.
 
@@ -201,6 +231,7 @@ export default {
       proxy: false,
       assetsSubfolder: 'fonts',
       subsetsAllowed: ['latin', 'latin-ext'],
+      cssInPlace: false,
       throwError: false,
     }),
   ],
@@ -306,6 +337,8 @@ npm start       # build in watch mode
 npm test        # run the test suite
 npm run lint    # type-check and lint
 ```
+
+The [`examples`](./examples) double as integration tests: build the plugin (`npm run build`), then build an example and verify its output with `node examples/check.mjs <output directory>`.
 
 ## License
 
