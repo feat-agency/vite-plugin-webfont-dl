@@ -52,8 +52,8 @@ describe('css transformer', () => {
 		const css = '@font-face{src:url(https://example.com/font.woff) format("woff"),url(https://example.com/font.woff2) format("woff2")}';
 
 		const fonts: FontCollection = new Map([
-			['font.woff', { url: 'https://example.com/font.woff', filename: 'font.woff', localPath: '/assets/font-AAAA.woff' }],
-			['font.woff2', { url: 'https://example.com/font.woff2', filename: 'font.woff2', localPath: '/assets/font-BBBB.woff2' }],
+			['https://example.com/font.woff', { url: 'https://example.com/font.woff', filename: 'font.woff', localPath: '/assets/font-AAAA.woff' }],
+			['https://example.com/font.woff2', { url: 'https://example.com/font.woff2', filename: 'font.woff2', localPath: '/assets/font-BBBB.woff2' }],
 		]);
 
 		const cssAfter = (new CssTransformer(getResolvedOptions({}))).transform(css, fonts);

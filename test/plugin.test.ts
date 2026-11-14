@@ -800,6 +800,157 @@ describe('plugin (build)', () => {
 		});
 	});
 
+	describe('fonts with the same file name', () => {
+		// Bunny Fonts / Fontsource: the file name is only the subset, weight and style
+		const bunnyCssUrl = 'https://fonts.bunny.net/css?family=inter:400|roboto:400';
+		const interUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@5.3.0/latin-400-normal.woff2';
+		const robotoUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-400-normal.woff2';
+
+		const bunnyCss = [
+			`@font-face{font-family:Inter;src:url(${interUrl}) format('woff2')}`,
+			`@font-face{font-family:Roboto;src:url(${robotoUrl}) format('woff2')}`,
+		].join('\n');
+
+		const selfHosted =
+			`@font-face{font-family:Inter;src:url(/assets/inter-5.3.0-latin-400-normal.woff2) format('woff2')}` +
+			`@font-face{font-family:Roboto;src:url(/assets/roboto-5.3.0-latin-400-normal.woff2) format('woff2')}`;
+
+		beforeEach(() => {
+			download.mockImplementation((url: string) => Promise.resolve({
+				data: url === bunnyCssUrl ? bunnyCss : Buffer.from('font:' + url),
+			}) as never);
+		});
+
+		it('should self-host every font', async () => {
+			const page = html.replace('</head>', `<link href="${bunnyCssUrl}" rel="stylesheet">\n\t</head>`);
+			const { plugin, emitted, run } = setup();
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: page } });
+
+			expect(bundle['index.html'].source).contain(selfHosted);
+			expect(bundle['index.html'].source).not.contain('cdn.jsdelivr.net');
+			expect(bundle['index.html'].source).not.contain('fonts.bunny.net');
+
+			// every font has its own file, with its own content
+			expect(Buffer.from(emitted.get('inter-5.3.0-latin-400-normal.woff2')!).toString()).eq('font:' + interUrl);
+			expect(Buffer.from(emitted.get('roboto-5.3.0-latin-400-normal.woff2')!).toString()).eq('font:' + robotoUrl);
+			expect(emitted.size).eq(2);
+		});
+
+		it('should self-host every font when they come from different places', async () => {
+			const page = html.replace('</head>', `<link href="${googleCssUrl}" rel="stylesheet">\n\t</head>`);
+			const userFontFace = `@font-face{font-family:Mine;src:url(https://fonts.gstatic.com/s/mine/v1/inter-latin.woff2)}`;
+
+			download.mockImplementation((url: string) => Promise.resolve({
+				data: url === googleCssUrl ? googleCss : Buffer.from('font:' + url),
+			}) as never);
+
+			const { plugin, emitted, run } = setup();
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({
+				'index.html': { source: page },
+				'assets/index.css': { source: userFontFace + 'body{color:red}' },
+			});
+
+			expect(bundle['index.html'].source).not.contain('fonts.gstatic.com');
+			expect(bundle['index.html'].source).contain('url(/assets/v20-inter-latin.woff2)');
+			expect(bundle['index.html'].source).contain('font-family:Mine;src:url(/assets/v1-inter-latin.woff2)');
+			expect([...emitted.keys()].sort()).deep.eq(['inter-cyrillic.woff2', 'v1-inter-latin.woff2', 'v20-inter-latin.woff2']);
+		});
+
+		it('should self-host every font with `fontDefinitionsInCss`', async () => {
+			const { emitted, run } = setup([], { fontDefinitionsInCss: true });
+
+			const bundle = await run({
+				'assets/app.css': { source: `@import url('${bunnyCssUrl}');body{color:red}` },
+			});
+
+			expect(bundle['assets/app.css'].source).eq('body{color:red}' + selfHosted);
+			expect([...emitted.keys()]).deep.eq(['inter-5.3.0-latin-400-normal.woff2', 'roboto-5.3.0-latin-400-normal.woff2']);
+		});
+
+		it('should embed every font', async () => {
+			const { plugin, emitted, run } = setup(bunnyCssUrl, { embedFonts: true });
+
+			plugin.transformIndexHtml(html, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: html } });
+			const source = bundle['index.html'].source as string;
+
+			expect(source).contain(Buffer.from('font:' + interUrl).toString('base64'));
+			expect(source).contain(Buffer.from('font:' + robotoUrl).toString('base64'));
+			expect(source).not.contain('cdn.jsdelivr.net');
+			expect(emitted.size).eq(0);
+		});
+
+		it('should keep only the refused font on the provider', async () => {
+			download.mockImplementation((url: string) => {
+				if (url === robotoUrl) {
+					return Promise.reject(httpError(404)) as never;
+				}
+
+				return Promise.resolve({ data: url === bunnyCssUrl ? bunnyCss : Buffer.from('font:' + url) }) as never;
+			});
+
+			const { emitted, run } = setup(bunnyCssUrl);
+
+			await run({});
+
+			const css = Buffer.from(emitted.get('webfonts.css')!).toString();
+
+			expect(css).contain('url(/assets/inter-5.3.0-latin-400-normal.woff2)');
+			expect(css).contain(`url(${robotoUrl})`);
+			expect([...emitted.keys()]).deep.eq(['inter-5.3.0-latin-400-normal.woff2', 'webfonts.css']);
+		});
+	});
+
+	describe('`&amp;` in the href of a link tag', () => {
+		const lobsterCssUrl = 'https://fonts.googleapis.com/css2?family=Lobster&display=swap';
+		const page = html.replace(
+			'</head>',
+			`<link href="${lobsterCssUrl.replace('&', '&amp;')}" rel="stylesheet">\n\t</head>`
+		);
+
+		it('should request the decoded url and remove the tag', async () => {
+			download.mockImplementation((url: string) => Promise.resolve({
+				data: url === lobsterCssUrl ? lobsterFontFace : Buffer.from('font:' + url),
+			}) as never);
+
+			const { plugin, run } = setup();
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: page } });
+
+			expect(download.mock.calls.map((call: unknown[]) => call[0])).deep.eq([lobsterCssUrl, lobsterUrl]);
+			expect(bundle['index.html'].source).contain('url(/assets/lobster.woff2)');
+			expect(bundle['index.html'].source).not.contain('<link');
+		});
+
+		it('should keep the tag of a refused url', async () => {
+			download.mockImplementation((url: string) => {
+				if (url === lobsterCssUrl) {
+					return Promise.reject(httpError(400)) as never;
+				}
+
+				return Promise.resolve({ data: url === googleCssUrl ? googleCss : Buffer.from('font:' + url) }) as never;
+			});
+
+			const { plugin, run } = setup(googleCssUrl);
+
+			plugin.transformIndexHtml(page, { path: '/index.html' });
+
+			const bundle = await run({ 'index.html': { source: page } });
+
+			expect(bundle['index.html'].source).contain(`<link href="${lobsterCssUrl.replace('&', '&amp;')}" rel="stylesheet">`);
+			expect(bundle['index.html'].source).contain('url(/assets/inter-latin.woff2)');
+		});
+	});
+
 	describe('parallel downloads', () => {
 		const fontUrls = Array.from({ length: 20 }, (_, index) => `https://fonts.gstatic.com/s/test/v1/font-${index}.woff2`);
 		const manyFontsCss = fontUrls.map((url, index) => `@font-face{font-family:Test${index};src:url(${url})}`).join('\n');
@@ -921,6 +1072,42 @@ describe('dev server middleware', () => {
 		expect(headers['Content-Type']).eq('font/woff2');
 		expect((response.body as Buffer).toString()).eq('font');
 		expect(next).not.toHaveBeenCalled();
+	});
+
+	it('should serve fonts with the same file name from their own urls', async () => {
+		const interUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/inter@5.3.0/latin-400-normal.woff2';
+		const robotoUrl = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@5.3.0/latin-400-normal.woff2';
+		const css = `@font-face{font-family:Inter;src:url(${interUrl})}\n@font-face{font-family:Roboto;src:url(${robotoUrl})}`;
+
+		vi.spyOn(Downloader.prototype, 'download').mockImplementation((url: string) =>
+			Promise.resolve({ data: url === googleCssUrl ? css : Buffer.from('font:' + url) }) as never
+		);
+
+		const webfontDl = await createWebfontDl();
+
+		const serve = async (path: string) => {
+			const { response } = createResponse();
+
+			await webfontDl.getDevServerMiddlewareGeneral(
+				{ originalUrl: path } as Connect.IncomingMessage,
+				response as unknown as ServerResponse,
+				vi.fn(),
+			);
+
+			return (response.body as Buffer | undefined)?.toString();
+		};
+
+		const { response } = createResponse();
+
+		await webfontDl.getDevServerMiddlewareCss(response as unknown as ServerResponse);
+
+		expect(response.body).eq(
+			'@font-face{font-family:Inter;src:url(/@webfonts/inter-5.3.0-latin-400-normal.woff2)}\n' +
+			'@font-face{font-family:Roboto;src:url(/@webfonts/roboto-5.3.0-latin-400-normal.woff2)}'
+		);
+
+		expect(await serve('/@webfonts/inter-5.3.0-latin-400-normal.woff2')).eq('font:' + interUrl);
+		expect(await serve('/@webfonts/roboto-5.3.0-latin-400-normal.woff2')).eq('font:' + robotoUrl);
 	});
 
 	it('should send the right content type for every font format', async () => {

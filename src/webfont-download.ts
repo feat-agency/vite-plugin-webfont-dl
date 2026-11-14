@@ -186,7 +186,7 @@ export class WebfontDownload {
 				if (parsedBundleCss.matchedCssParts.length) {
 					// parsed fonts
 					parsedBundleCss.fonts.forEach((font: Font) => {
-						this.fonts.set(font.filename, font);
+						this.fonts.set(font.url, font);
 					});
 
 					// @import webfont css urls
@@ -379,7 +379,7 @@ export class WebfontDownload {
 			.join('\n');
 
 		parseResult.fonts.forEach((font: Font) => {
-			this.fonts.set(font.filename, font);
+			this.fonts.set(font.url, font);
 		});
 
 		// `fontDefinitionsInCss`: the webfont css of every bundled @import is kept separately
@@ -389,9 +389,12 @@ export class WebfontDownload {
 			this.cssByUrl.set(url, parseResultInPlace.cssContent);
 
 			parseResultInPlace.fonts.forEach((font: Font) => {
-				this.fonts.set(font.filename, font);
+				this.fonts.set(font.url, font);
 			});
 		});
+
+		// every font is known by now: fonts sharing a file name get their own one
+		this.cssParser.deduplicateFilenames(this.fonts, this.base, this.assetsDir);
 	};
 
 	async downloadFont(url: string): Promise<Buffer> {
@@ -429,7 +432,7 @@ export class WebfontDownload {
 			if (binary !== undefined) {
 				this.saveFont(font, binary);
 			} else {
-				this.fonts.delete(font.filename);
+				this.fonts.delete(font.url);
 			}
 		});
 
@@ -621,7 +624,7 @@ export class WebfontDownload {
 		const isRelativeBase = this.base === '' || this.base.startsWith('.');
 		const fonts: FontCollection = new Map<string, Font>();
 
-		this.fonts.forEach((font, filename) => {
+		this.fonts.forEach((font, url) => {
 			let localPath = font.localPath;
 
 			if (font.savedPath !== undefined) {
@@ -630,7 +633,7 @@ export class WebfontDownload {
 					this.base + font.savedPath;
 			}
 
-			fonts.set(filename, { ...font, localPath });
+			fonts.set(url, { ...font, localPath });
 		});
 
 		return fonts;

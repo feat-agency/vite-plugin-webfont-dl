@@ -4,7 +4,7 @@ Minimal projects showing the different ways to use `vite-plugin-webfont-dl`. Eac
 
 | Example | Shows | Fonts come from |
 |---|---|---|
-| [`vanilla`](./vanilla) | Zero config | `<link>` tags in `index.html` |
+| [`vanilla`](./vanilla) | Zero config | `<link>` tags in `index.html` (Google Fonts and Bunny Fonts) |
 | [`vue`](./vue) | Simple config | URL passed to the plugin in `vite.config.js` |
 | [`react`](./react) | CSS `@import` detection | `@import` in `src/index.css` |
 | [`svelte`](./svelte) | Options (`injectAsStyleTag: false`, `subsetsAllowed`) | `<link>` tags in `index.html` |

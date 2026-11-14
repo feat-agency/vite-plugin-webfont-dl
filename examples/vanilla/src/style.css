@@ -3,3 +3,11 @@ body {
 	margin: 4rem auto;
 	max-width: 40rem;
 }
+
+h1 {
+	font-family: 'Roboto Slab', serif;
+}
+
+code {
+	font-family: 'Roboto Mono', monospace;
+}
