@@ -30,6 +30,7 @@ export interface Font {
 	binary?: Buffer;
 }
 
+// key: the url of the font (different fonts can have the same file name)
 export type FontCollection = Map<string, Font>;
 
 export interface BundleCssImport {

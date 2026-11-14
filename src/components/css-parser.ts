@@ -50,11 +50,11 @@ export class CssParser {
 				if (filenameMatch) {
 					const filename = filenameMatch[0];
 
-					fonts.set(filename, {
+					fonts.set(url, {
 						// source: 'src'
 						url,
 						filename,
-						localPath: base + (assetsDir ? assetsDir + '/' : '') + filename,
+						localPath: this.getLocalPath(filename, base, assetsDir),
 					});
 				}
 			}
@@ -72,10 +72,10 @@ export class CssParser {
 
 					const filenameWithExtension = filename + '.woff2';
 
-					fonts.set(filenameWithExtension, {
+					fonts.set(url, {
 						url,
 						filename: filenameWithExtension,
-						localPath: base + (assetsDir ? assetsDir + '/' : '') + filenameWithExtension,
+						localPath: this.getLocalPath(filenameWithExtension, base, assetsDir),
 					});
 				}
 			}
@@ -85,6 +85,62 @@ export class CssParser {
 			cssContent: cssContent,
 			fonts: fonts,
 		};
+	}
+
+	/**
+	 * Gives every font its own file name.
+	 *
+	 * Different fonts can share a file name: Bunny Fonts / Fontsource name the files by subset, weight and style
+	 * (`inter@5.3.0/latin-400-normal.woff2`, `roboto@5.3.0/latin-400-normal.woff2`).
+	 * These get the name of their directory as a prefix, and the hash of their url if that is still not unique.
+	 * Fonts with a unique file name are not touched.
+	 */
+	public deduplicateFilenames(fonts: FontCollection, base: string, assetsDir: string): void {
+		const prefixes = [
+			(font: Font) => this.getDirectoryName(font.url),
+			(font: Font) => createHash('sha1').update(font.url).digest('hex').substring(0, 8),
+		];
+
+		for (const getPrefix of prefixes) {
+			const fontsByFilename = new Map<string, Font[]>();
+
+			fonts.forEach((font) => {
+				// lowercase: these are the same file on a case-insensitive file system
+				const key = font.filename.toLowerCase();
+
+				fontsByFilename.set(key, [...(fontsByFilename.get(key) ?? []), font]);
+			});
+
+			fontsByFilename.forEach((sameNamedFonts) => {
+				if (sameNamedFonts.length < 2) {
+					return;
+				}
+
+				sameNamedFonts.forEach((font) => {
+					const prefix = getPrefix(font);
+
+					if (prefix) {
+						font.filename = prefix + '-' + font.filename;
+						font.localPath = this.getLocalPath(font.filename, base, assetsDir);
+					}
+				});
+			});
+		}
+	}
+
+	private getLocalPath(filename: string, base: string, assetsDir: string): string {
+		return base + (assetsDir ? assetsDir + '/' : '') + filename;
+	}
+
+	/**
+	 * `https://cdn.jsdelivr.net/fontsource/fonts/inter@5.3.0/latin-400-normal.woff2` => `inter-5.3.0`
+	 */
+	private getDirectoryName(url: string): string {
+		const directory = url.replace(/[?#].*$/, '').split('/').slice(-2, -1)[0] ?? '';
+
+		return directory
+			.replace(/[^a-z0-9._-]+/gi, '-')
+			.replace(/^[-.]+|[-.]+$/g, '');
 	}
 
 
@@ -112,7 +168,7 @@ export class CssParser {
 
 			parseResult.fonts.forEach((font: Font) => {
 				if (this.webfontProviders.some((regex) => regex.test(font.url))) {
-					fonts.set(font.filename, font);
+					fonts.set(font.url, font);
 					matched = true;
 				}
 			});

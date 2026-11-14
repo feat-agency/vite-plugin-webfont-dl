@@ -51,6 +51,14 @@ export class IndexHtmlProcessor {
 		/<link[^>]+href=['"]?https:\/\/rsms\.me['"]?[^>]+rel=['"]?preconnect['"]?[^>]*>/,
 	];
 
+	private characterReferences: Record<string, string> = {
+		amp: '&',
+		lt: '<',
+		gt: '>',
+		quot: '"',
+		apos: '\'',
+	};
+
 	parse(html: string): Set<string> {
 		const webfontUrls = new Set<string>();
 
@@ -60,7 +68,7 @@ export class IndexHtmlProcessor {
 			if (matches) {
 				for (const match of matches) {
 					if (!match[1] || match[1].includes('-->')) {
-						webfontUrls.add(match[2]);
+						webfontUrls.add(this.decodeUrl(match[2]));
 					}
 				}
 			}
@@ -86,6 +94,25 @@ export class IndexHtmlProcessor {
 		return html;
 	}
 
+	/**
+	 * An attribute value is html: `&amp;` stands for `&` (validators, formatters and template engines write it this way),
+	 * the browser decodes the character references before it requests the stylesheet.
+	 */
+	private decodeUrl(url: string): string {
+		return url.replace(
+			/&(?:#(\d+)|#[xX]([0-9a-fA-F]+)|(amp|AMP|lt|LT|gt|GT|quot|QUOT|apos));/g,
+			(match: string, decimal?: string, hex?: string, name?: string) => {
+				if (name) {
+					return this.characterReferences[name.toLowerCase()];
+				}
+
+				const codePoint = decimal ? parseInt(decimal, 10) : parseInt(hex!, 16);
+
+				return codePoint > 0 && codePoint <= 0x10FFFF ? String.fromCodePoint(codePoint) : match;
+			}
+		);
+	}
+
 	private removePreconnectTags(html: string): string {
 		for (const regex of this.preconnectRegexes) {
 			const removeRegex = new RegExp('[ \t]*' + regex.source + '(\r\n|\r|\n)?', 'g');
@@ -101,7 +128,7 @@ export class IndexHtmlProcessor {
 
 			html = html.replace(
 				removeRegex,
-				(match: string, comment: string | undefined, url: string) => keepUrls.has(url) ? match : (comment ?? '')
+				(match: string, comment: string | undefined, url: string) => keepUrls.has(this.decodeUrl(url)) ? match : (comment ?? '')
 			);
 		}
 

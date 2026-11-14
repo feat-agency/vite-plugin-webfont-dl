@@ -9,10 +9,15 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+		<!-- any number of providers and families, `&amp;` (how html writes `&`) is fine too -->
+		<link rel="preconnect" href="https://fonts.bunny.net">
+		<link href="https://fonts.bunny.net/css2?family=Roboto+Slab:wght@400&amp;family=Roboto+Mono:wght@400&amp;display=swap" rel="stylesheet">
 	</head>
 	<body>
 		<h1>Self-hosted Inter</h1>
 		<p>The fonts of this page are downloaded at build time and served from your own domain.</p>
+		<p><code>No request leaves for a webfont provider.</code></p>
 		<script type="module" src="/src/main.js"></script>
 	</body>
 </html>

@@ -141,6 +141,48 @@ describe('index.html processor', () => {
 		expect(htmlAfter).not.contains(stylesheetTag);
 	});
 
+	describe('character references in the href', () => {
+		const url = 'https://fonts.googleapis.com/css2?family=Roboto&family=Lato&display=swap';
+
+		const link = (href: string) => `<head>\n  <link href="${href}" rel="stylesheet" />\n  <title>x</title>\n</head>`;
+
+		it('should decode `&amp;`', () => {
+			const html = link('https://fonts.googleapis.com/css2?family=Roboto&amp;family=Lato&amp;display=swap');
+
+			expect([...(new IndexHtmlProcessor()).parse(html)]).deep.eq([url]);
+		});
+
+		it('should decode numeric character references', () => {
+			const html = link('https://fonts.googleapis.com/css2?family=Roboto&#38;family=Lato&#x26;display=swap');
+
+			expect([...(new IndexHtmlProcessor()).parse(html)]).deep.eq([url]);
+		});
+
+		it('should leave a plain `&` as it is', () => {
+			const plain = 'https://fonts.googleapis.com/css2?family=Roboto&amp=1&lt=2&family=Lato';
+
+			expect([...(new IndexHtmlProcessor()).parse(link(plain))]).deep.eq([plain]);
+		});
+
+		it('should find the same url only once, however it is written', () => {
+			const html = link(url) + link(url.replaceAll('&', '&amp;'));
+
+			expect([...(new IndexHtmlProcessor()).parse(html)]).deep.eq([url]);
+		});
+
+		it('should remove the tag', () => {
+			const html = link(url.replaceAll('&', '&amp;'));
+
+			expect((new IndexHtmlProcessor()).removeTags(html)).eq('<head>\n  <title>x</title>\n</head>');
+		});
+
+		it('should keep the tag of a failed url as it was written', () => {
+			const html = link(url.replaceAll('&', '&amp;'));
+
+			expect((new IndexHtmlProcessor()).removeTags(html, new Set([url]))).eq(html);
+		});
+	});
+
 	describe('keeping the tags of failed urls', () => {
 		const goodUrl = 'https://fonts.googleapis.com/css2?family=Good';
 		const failedUrl = 'https://fonts.googleapis.com/css2?family=Failed';

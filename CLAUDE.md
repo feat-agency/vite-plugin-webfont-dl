@@ -100,7 +100,7 @@ The plugin uses a component-based architecture with single-responsibility classe
     - `@import"...";`
     - `@import '...';`
 - **Provider whitelist**: Google Fonts, Bunny Fonts, Fontshare, Google Fonts Static
-- Returns deduplicated fonts via Map (filename as key ensures uniqueness)
+- Returns deduplicated fonts via Map (the url of the font is the key, see "Font Collection Management")
 
 #### css-transformer.ts
 **Purpose**: Replaces remote font URLs with local paths or embeds as base64
@@ -155,6 +155,7 @@ The plugin uses a component-based architecture with single-responsibility classe
   - Only processes uncommented tags
 - **Removes preconnect hints**: Also removes `<link rel="preconnect">` tags for font domains
 - **Newline cleanup**: When removing tags, also removes trailing newlines to avoid blank lines in output
+- **Character references**: the `href` is decoded like a browser does (`&amp;`, `&#38;`, `&#x26;` → `&`) before it is requested (`decodeUrl()`). Formatters and template engines write `&amp;`; undecoded, the provider ignores every parameter after the first one. `removeTags()` compares the decoded url with `keepUrls`, a kept tag is left as it was written
 
 #### downloader.ts
 **Purpose**: HTTP client for downloading CSS and fonts
@@ -237,9 +238,10 @@ The plugin uses a component-based architecture with single-responsibility classe
 ## Critical Implementation Details
 
 ### Font Collection Management
-- **Data structure**: `Map<string, Font>` where key is filename
+- **Data structure**: `Map<string, Font>` where key is the **url** of the font
 - **Why Map**: Ensures uniqueness, prevents duplicate downloads
-- **Filename collision**: Later fonts with same filename overwrite earlier ones (intentional)
+- **Never key by file name**: different fonts can share one. Bunny Fonts serves Fontsource files named by subset, weight and style only (`inter@5.3.0/latin-400-normal.woff2`, `roboto@5.3.0/latin-400-normal.woff2`); keyed by file name the last family overwrote the others, which then stayed on the provider (#115)
+- **Unique file names**: `CssParser.deduplicateFilenames()` runs at the end of `parseFontDefinitions()`, when every font is known. Fonts sharing a file name (case-insensitive) get the name of their directory as a prefix (`inter-5.3.0-latin-400-normal.woff2`), and the hash of their url if that is still not unique. A font with a unique file name is never renamed, so the output of everything else stays the same. The same names are used for the emitted files and the dev server paths (`/@webfonts/...`)
 
 ### URL Path Handling
 Multiple path variables interact:
@@ -366,7 +368,7 @@ webfontDownload([], {
 ### Test Categories
 1. **Component tests**: Each component has dedicated test file
    - `css-loader.test.ts`: URL normalization
-   - `css-parser.test.ts`: Font extraction, subset filtering
+   - `css-parser.test.ts`: Font extraction, subset filtering, fonts sharing a file name
    - `css-transformer.test.ts`: URL replacement, base64 embedding, minification
    - `css-injector.test.ts`: HTML injection, indentation preservation
    - `index-html-processor.test.ts`: Tag extraction and removal for all providers
